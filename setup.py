@@ -2,13 +2,13 @@ from setuptools import setup
 from setuptools import find_packages
 
 
-setup(name='wdlforecast',
+setup(name='Checkers',
       version='0.1',
       description='Forecasting functions',
-      url='https://172.31.175.49:30000/marcuscramer/wdl-python',
-      author='Marcus Cramer',
-      author_email='cramer@westphalia-datalab.com',
-      license='WDL',
+      url='',
+      author='Felix Kleine Bösing',
+      author_email='felix.boesing@t-online.de',
+      license='FKB',
       packages=find_packages(),
       install_requires=['numpy', 'pandas', 'xgboost', 'recordclass', 'catboost', 'isoweek', 'statsmodels', 'lightgbm',
                         'sklearn', 'aenum', 'redis', 'flask'],
