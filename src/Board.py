@@ -28,12 +28,16 @@ class Board:
     def print_board(self):
         print(self.board)
 
-    def place_stone(self):
-        pass
+    def place_stone(self, from_row: int, from_col: int, to_row: int, to_col: int, player: int):
+        self.board[from_row, from_col] = 0
+        self.board[to_row, to_col] = 1 if player == 1 else -1
 
-    def remove_stone(self):
-        pass
+    def remove_stone(self, row, col):
+        self.board[row, col] = 0
+
+
 
 
 if __name__ == "__main__":
     board = Board(board_length=8)
+    board.print_board()
