@@ -20,10 +20,10 @@ class Board:
                 for j in range(self.board_length):
                     if i % 2 == 0:
                         if j % 2 == 0:
-                            self.board[i,j] = player
+                            self.board[i, j] = player
                     else:
                         if j % 2 != 0:
-                            self.board[i,j] = player
+                            self.board[i, j] = player
 
     def print_board(self):
         print(self.board)
