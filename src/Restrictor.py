@@ -1,6 +1,7 @@
 from src.Board import Board
 from src.Applicant import Applicant
 
+
 class Restrictor:
 
     def __init__(self, name: str, board_size: int, board: Board, player_one: Applicant, player_two: Applicant):
@@ -12,18 +13,15 @@ class Restrictor:
         self.selected_stone_row = None
         self.selected_stone_col = None
 
-
     def get_stone_position(self, row, col, board: Board, player: Applicant):
         self.selected_stone_row = row
         self.selected_stone_col = col
 
     def check_valid_actions(self):
         stone_value = self.board[self.selected_stone_row, self.selected_stone_col]
+        possible_directions = self._possible_directions()
 
-        if abs(stone_value) > 10:
-            pass
-        else:
-            pass
+
 
     def _check_player_based_on_stone(self):
         assert self.board is not None, "Deliver board please!"
@@ -52,5 +50,7 @@ class Restrictor:
 
         return status
 
-    def __possible_directions(self):
+    def _possible_directions(self):
         pass
+
+

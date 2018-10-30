@@ -1,29 +1,32 @@
 import numpy as np
 
+from src.Stone import Stone
+from src.Applicant import Applicant
 
 class Board:
 
-    def __init__(self, board_length: int = 8):
+    def __init__(self, player_one: Applicant, player_two: Applicant, board_length: int = 8):
         assert board_length % 2 == 0, "Board length has to be an odd number!"
 
         self.board_length = board_length
         # 0 is no stone placed
         self.board = [[0 for x in range(self.board_length)] for y in range(self.board_length)]
         self.board = np.array(self.board)
-
+        stones = {}
         for i in range(self.board_length):
             if i <= 2:
-                player = 1
+                player = player_one
             else:
-                player = -1
+                player = player_two
             if i <= 2 or i >= self.board_length-3:
                 for j in range(self.board_length):
                     if i % 2 == 0:
                         if j % 2 == 0:
-                            self.board[i, j] = player
+                            self.board[i, j] = 1 if player == player_one else -1
                     else:
                         if j % 2 != 0:
-                            self.board[i, j] = player
+                            self.board[i, j] = -1 if player == player_two else
+            self.stones = stones
 
     def print_board(self):
         print(self.board)

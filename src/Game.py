@@ -1,5 +1,5 @@
 from src.Board import Board
-
+from src.Applicant import Applicant
 
 class Game:
 
@@ -7,8 +7,12 @@ class Game:
 
         self.name = name
 
+        # init players
+        self.player_one = Applicant("One", "up")
+        self.player_two = Applicant("Two", "dpwn")
+
         # init board
-        self.board = Board(board_length=8)
+        self.board = Board(board_length=8, )
 
     def get_board(self):
         pass
