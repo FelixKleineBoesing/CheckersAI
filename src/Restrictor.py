@@ -40,7 +40,7 @@ class Restrictor:
             else:
                 player = self.player_two
         return player
-#
+
     def _check_stone_status(self):
         value = self.board[self.selected_stone_row, self.selected_stone_col]
         if abs(value) == 2:
@@ -50,7 +50,28 @@ class Restrictor:
 
         return status
 
+<<<<<<< HEAD
     def _possible_directions(self):
         pass
 
 
+=======
+    def __possible_directions(self):
+        # a stone can only go diagonally
+        row = self.selected_stone_row
+        col = self.selected_stone_col
+        possible_positions = []
+        directions = [[-1,1], [1,1], [-1,-1], [1,-1]]
+        for direction in directions:
+            new_row = row + direction[0]
+            new_col = col + direction[1]
+            if self._check_if_position_on_board(self.board_size, new_row, new_col):
+                possible_positions = possible_positions + [[new_row, new_col]]
+
+    @staticmethod
+    def _check_if_position_on_board(board_size: int, row: int, col: int):
+        in_row = row in range(board_size-1)
+        in_col = col in range(board_size-1)
+
+        return in_row & in_col
+>>>>>>> 0d473cf8ad05ef8ff44e676dc3f96ed54be2c141
