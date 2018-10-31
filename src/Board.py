@@ -37,6 +37,12 @@ class Board:
                             stones[str(n)] = stone
         self.stones = stones
 
+    def refresh_board(self):
+        for i in range(self.board.shape[0]):
+            for j in range(self.board.shape[1]):
+                self.board[i,j] = 0
+        for key in self.stones.keys():
+            self.board[self.stones[key].coord] = self.stones[key].value
 
     def print_board(self):
         print(self.board)
@@ -47,8 +53,3 @@ class Board:
 
     def remove_stone(self, row, col):
         self.board[row, col] = 0
-
-
-if __name__=="__main__":
-    board = Board(board_length=8)
-    board.print_board()
