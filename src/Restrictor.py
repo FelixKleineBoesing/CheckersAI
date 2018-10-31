@@ -21,8 +21,6 @@ class Restrictor:
         stone_value = self.board[self.selected_stone_row, self.selected_stone_col]
         possible_directions = self._possible_directions()
 
-
-
     def _check_player_based_on_stone(self):
         assert self.board is not None, "Deliver board please!"
         assert self.selected_stone_row is not None, "Deliver row of stone please!"
@@ -50,12 +48,6 @@ class Restrictor:
 
         return status
 
-<<<<<<< HEAD
-    def _possible_directions(self):
-        pass
-
-
-=======
     def __possible_directions(self):
         # a stone can only go diagonally
         row = self.selected_stone_row
@@ -74,4 +66,3 @@ class Restrictor:
         in_col = col in range(board_size-1)
 
         return in_row & in_col
->>>>>>> 0d473cf8ad05ef8ff44e676dc3f96ed54be2c141

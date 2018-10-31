@@ -3,10 +3,11 @@ from src.Applicant import Applicant
 
 class Stone:
 
-    def __init__(self, player: Applicant, row: int, col: int, status: str):
+    def __init__(self,id: int,  player: Applicant, coord: tuple[int, int], status: str, value: int):
+        self.id = id
         self.player = player
-        self.row = row
-        self.col = col
+        self.coord = coord
         self.status = status
+        self.value = value
 
     #def
