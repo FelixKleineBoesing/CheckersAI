@@ -5,28 +5,44 @@ from src.Applicant import Applicant
 
 class Board:
 
-    def __init__(self, player_one: Applicant, player_two: Applicant, board_length: int = 8):
+    def __init__(self, board_length: int = 8):
         assert board_length % 2 == 0, "Board length has to be an odd number!"
 
         self.board_length = board_length
         # 0 is no stone placed
         self.board = [[0 for x in range(self.board_length)] for y in range(self.board_length)]
         self.board = np.array(self.board)
+
+    def init_stones(self, player_one: Applicant, player_two: Applicant):
+        n = 1
         stones = {}
         for i in range(self.board_length):
             if i <= 2:
                 player = player_one
+                value = 1
             else:
                 player = player_two
-            if i <= 2 or i >= self.board_length-3:
+                value = -1
+            if i <= 2 or i >= self.board_length - 3:
                 for j in range(self.board_length):
                     if i % 2 == 0:
                         if j % 2 == 0:
-                            self.board[i, j] = 1 if player == player_one else -1
+                            stone = Stone(n, player, (i,j) , "normal", value)
+                            n += 1
+                            stones[str(n)] = stone
                     else:
                         if j % 2 != 0:
-                            self.board[i, j] = -1 if player == player_two else
-            self.stones = stones
+                            stone = Stone(n, player, (i, j), "normal", value)
+                            n += 1
+                            stones[str(n)] = stone
+        self.stones = stones
+
+    def refresh_board(self):
+        for i in range(self.board.shape[0]):
+            for j in range(self.board.shape[1]):
+                self.board[i,j] = 0
+        for key in self.stones.keys():
+            self.board[self.stones[key].coord] = self.stones[key].value
 
     def print_board(self):
         print(self.board)
@@ -37,10 +53,3 @@ class Board:
 
     def remove_stone(self, row, col):
         self.board[row, col] = 0
-
-
-
-
-if __name__ == "__main__":
-    board = Board(board_length=8)
-    board.print_board()
