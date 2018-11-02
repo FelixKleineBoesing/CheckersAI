@@ -27,7 +27,7 @@ class Board:
                 for j in range(self.board_length):
                     if i % 2 == 0:
                         if j % 2 == 0:
-                            stone = Stone(n, player, (i,j) , "normal", value)
+                            stone = Stone(n, player, (i, j), "normal", value)
                             n += 1
                             stones[str(n)] = stone
                     else:

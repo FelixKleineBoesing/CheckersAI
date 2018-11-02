@@ -12,4 +12,3 @@ class Stone:
         self.status = status
         self.value = value
 
-    #def
