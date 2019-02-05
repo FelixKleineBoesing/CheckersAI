@@ -1,4 +1,5 @@
 import numpy as np
+from functools import reduce
 
 from src.Stone import Stone
 from src.Applicant import Applicant
@@ -9,13 +10,14 @@ class Board:
         assert board_length % 2 == 0, "Board length has to be an odd number!"
 
         self.board_length = board_length
+        self.stones = None
         # 0 is no stone placed
         self.board = [[0 for x in range(self.board_length)] for y in range(self.board_length)]
         self.board = np.array(self.board)
 
     def init_stones(self, player_one: Applicant, player_two: Applicant):
         n = 1
-        stones = {}
+        stones = []
         for i in range(self.board_length):
             if i <= 2:
                 player = player_one
@@ -28,21 +30,22 @@ class Board:
                     if i % 2 == 0:
                         if j % 2 == 0:
                             stone = Stone(n, player, (i, j), "normal", value)
+                            stones += [stone]
                             n += 1
-                            stones[str(n)] = stone
                     else:
                         if j % 2 != 0:
                             stone = Stone(n, player, (i, j), "normal", value)
+                            stones += [stone]
                             n += 1
-                            stones[str(n)] = stone
         self.stones = stones
 
     def refresh_board(self):
         for i in range(self.board.shape[0]):
             for j in range(self.board.shape[1]):
                 self.board[i,j] = 0
-        for key in self.stones.keys():
-            self.board[self.stones[key].coord] = self.stones[key].value
+        for stone in self.stones:
+            if not stone.removed:
+                self.board[stone.coord] = stone.value
 
     def print_board(self):
         print(self.board)
@@ -53,3 +56,23 @@ class Board:
 
     def remove_stone(self, row, col):
         self.board[row, col] = 0
+
+    def number_of_stones(self):
+        number_stones = 0
+        for stone in self.stones:
+            number_stones += stone.removed
+        return number_stones
+
+    def check_if_player_without_stones(self):
+        # returns true if one player has no stones.
+        players = []
+        for stone in self.stones:
+            if not stone.removed:
+                if stone.player.name in players:
+                    continue
+                else:
+                    players += [stone.player.name]
+            if len(players) == 2:
+                return False
+        return True
+

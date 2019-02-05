@@ -12,3 +12,6 @@ class Applicant:
 
     def move_stone(self):
         pass
+
+    def play_turn(self):
+        pass
