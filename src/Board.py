@@ -30,12 +30,12 @@ class Board:
                 for j in range(self.board_length):
                     if i % 2 == 0:
                         if j % 2 == 0:
-                            stone = Stone(n, player, np.array((i, j)), "normal", value)
+                            stone = Stone(n, player, np.array((i, j)), "normal", value, self.board_length)
                             stones += [stone]
                             n += 1
                     else:
                         if j % 2 != 0:
-                            stone = Stone(n, player, np.array((i, j)), "normal", value)
+                            stone = Stone(n, player, np.array((i, j)), "normal", value, self.board_length)
                             stones += [stone]
                             n += 1
         self.stones = stones
@@ -49,22 +49,45 @@ class Board:
                 self.board[stone.coord[0], stone.coord[1]] = stone.value
 
     def get_all_moves(self, player_name: str):
-        action_space = {}
+        tmp = {}
+        # because a player must jump an enemy stone we proof here if there is any move where a stone can be jumped
+        jumping_possible = False
         for stone in self.stones:
-            if stone.player.name == player_name:
+            if stone.player.name == player_name and stone.removed == False:
                 spec_act_space = stone.get_possible_moves(self.board_length, self.board)
-                action_space[stone.id] = spec_act_space
+                for move in spec_act_space:
+                    if move["jumped_values"] != 0:
+                        jumping_possible = True
+                tmp[stone.id] = spec_act_space
+
+        action_space = {}
+        for id in tmp.keys():
+            if len(tmp[id]) == 0:
+                continue
+            if jumping_possible:
+                for i in range(len(tmp[id])):
+                    if tmp[id][i]["jumped_values"] != 0:
+                        if id not in action_space:
+                            action_space[id] = [tmp[id][i]]
+                        else:
+                            action_space[id] += [tmp[id][i]]
+            else:
+                action_space[id] = tmp[id]
+
         return action_space
 
     def print_board(self):
         print(self.board)
 
-    def place_stone(self, from_row: int, from_col: int, to_row: int, to_col: int, player: int):
-        self.board[from_row, from_col] = 0
-        self.board[to_row, to_col] = 1 if player == 1 else -1
-
-    def remove_stone(self, row, col):
-        self.board[row, col] = 0
+    def move_stone(self, move: dict, stone_id):
+        for stone in self.stones:
+            if stone.id == stone_id:
+                stone.coord = move["new_coord"]
+                break
+        for coord in move["jumped_stones"]:
+            for stone in self.stones:
+                if coord[0] == stone.coord[0] and coord[1] == stone.coord[1]:
+                    stone.removed = True
 
     def number_of_stones(self):
         number_stones = 0
@@ -82,6 +105,6 @@ class Board:
                 else:
                     players += [stone.player.name]
             if len(players) == 2:
-                return False
-        return True
+                return False, players
+        return True, players
 

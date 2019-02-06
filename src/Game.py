@@ -16,6 +16,7 @@ class Game:
         # init players
         self.player_one = player_one
         self.player_two = player_two
+        self.winner = None
 
         # init board
         self.board = board
@@ -30,32 +31,43 @@ class Game:
         return self.board.get_all_moves(player_name)
 
     def play(self):
-        unfinished = True
+        finished = False
         turns_without_removed_stone = 0
 
-        while unfinished:
+        while not finished:
             number_stones_before = self.board.number_of_stones()
-
             self.turns += 1
+            print("Iteration:{}".format(self.turns))
             action_space_p_one = self.get_action_space(self.player_one.name)
-            self.player_one.play_turn(action_space_p_one)
+            move, stone_id = self.player_one.play_turn(action_space_p_one)
+            self.board.move_stone(move, stone_id)
             self.board.refresh_board()
-            unfinished = self.game_running(turns_without_removed_stone)
-            if not unfinished:
+            print("--------Player One moved-----------")
+            self.board.print_board()
+            finished, reason, winner = self.game_finished(turns_without_removed_stone)
+            if finished:
                 break
 
             action_space_p_two =self.get_action_space(self.player_two.name)
-            self.player_two.play_turn(action_space_p_two)
+            move, stone_id = self.player_two.play_turn(action_space_p_two)
+            self.board.move_stone(move, stone_id)
             self.board.refresh_board()
+            print("--------Player two moved-----------")
+            self.board.print_board()
             number_stones_after = self.board.number_of_stones()
-            self.game_running(turns_without_removed_stone)
             turns_without_removed_stone = turns_without_removed_stone + 1 if number_stones_after == \
                                                                              number_stones_before else 0
+            finished, reason, winner = self.game_finished(turns_without_removed_stone)
 
+        print("Game finished with the following message: {}".format(reason))
+        self.winner = winner
         #end game here
 
-    def game_running(self, turns_without_removed_stone: int):
-        if self.board.check_if_player_without_stones() or turns_without_removed_stone >= 20:
-            return False
+    def game_finished(self, turns_without_removed_stone: int):
+        player_vanished, players = self.board.check_if_player_without_stones()
+        if player_vanished:
+            return True, "Player {} won!".format(players[0]), players[0]
+        elif turns_without_removed_stone >= 20:
+            return True, "Draw!", None
         else:
-            return True
+            return False, "", None
