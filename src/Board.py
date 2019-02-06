@@ -4,6 +4,7 @@ from functools import reduce
 from src.Stone import Stone
 from src.Applicant import Applicant
 
+
 class Board:
 
     def __init__(self, board_length: int = 8):
@@ -29,12 +30,12 @@ class Board:
                 for j in range(self.board_length):
                     if i % 2 == 0:
                         if j % 2 == 0:
-                            stone = Stone(n, player, (i, j), "normal", value)
+                            stone = Stone(n, player, np.array((i, j)), "normal", value)
                             stones += [stone]
                             n += 1
                     else:
                         if j % 2 != 0:
-                            stone = Stone(n, player, (i, j), "normal", value)
+                            stone = Stone(n, player, np.array((i, j)), "normal", value)
                             stones += [stone]
                             n += 1
         self.stones = stones
@@ -42,10 +43,18 @@ class Board:
     def refresh_board(self):
         for i in range(self.board.shape[0]):
             for j in range(self.board.shape[1]):
-                self.board[i,j] = 0
+                self.board[i, j] = 0
         for stone in self.stones:
             if not stone.removed:
-                self.board[stone.coord] = stone.value
+                self.board[stone.coord[0], stone.coord[1]] = stone.value
+
+    def get_all_moves(self, player_name: str):
+        action_space = {}
+        for stone in self.stones:
+            if stone.player.name == player_name:
+                spec_act_space = stone.get_possible_moves(self.board_length, self.board)
+                action_space[stone.id] = spec_act_space
+        return action_space
 
     def print_board(self):
         print(self.board)

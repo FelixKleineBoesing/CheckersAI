@@ -1,5 +1,8 @@
 from src.Board import Board
 from src.Applicant import Applicant
+from src.applicants.PlayerOne import PlayerOne
+from src.applicants.PlayerTwo import PlayerTwo
+
 
 class Game:
 
@@ -23,11 +26,8 @@ class Game:
         # stats
         self.turns = 0
 
-    def get_board(self):
-        pass
-
-    def get_users(self):
-        pass
+    def get_action_space(self, player_name: str):
+        return self.board.get_all_moves(player_name)
 
     def play(self):
         unfinished = True
@@ -37,12 +37,16 @@ class Game:
             number_stones_before = self.board.number_of_stones()
 
             self.turns += 1
-            self.player_one.play_turn()
+            action_space_p_one = self.get_action_space(self.player_one.name)
+            self.player_one.play_turn(action_space_p_one)
+            self.board.refresh_board()
             unfinished = self.game_running(turns_without_removed_stone)
             if not unfinished:
                 break
 
-            self.player_two.play_turn()
+            action_space_p_two =self.get_action_space(self.player_two.name)
+            self.player_two.play_turn(action_space_p_two)
+            self.board.refresh_board()
             number_stones_after = self.board.number_of_stones()
             self.game_running(turns_without_removed_stone)
             turns_without_removed_stone = turns_without_removed_stone + 1 if number_stones_after == \

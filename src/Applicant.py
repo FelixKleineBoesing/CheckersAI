@@ -1,17 +1,21 @@
+import abc
 
 
-class Applicant:
+class Applicant(abc.ABC):
 
     def __init__(self, name: str, side: str = "up"):
         assert side in ["up", "down"], "Side has to be up or down"
         self.name = name
         self.side = side
 
-    def get_board(self):
-        pass
-
+    @abc.abstractmethod
     def move_stone(self):
         pass
 
-    def play_turn(self):
+    @abc.abstractmethod
+    def play_turn(self, action_space: dict):
+        pass
+
+    @abc.abstractmethod
+    def decision(self):
         pass
