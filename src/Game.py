@@ -1,7 +1,5 @@
 from src.Board import Board
 from src.Applicant import Applicant
-from src.applicants.PlayerOne import PlayerOne
-from src.applicants.PlayerTwo import PlayerTwo
 
 
 class Game:
@@ -39,6 +37,11 @@ class Game:
             self.turns += 1
             print("Iteration:{}".format(self.turns))
             action_space_p_one = self.get_action_space(self.player_one.name)
+            # if player is blocked and can´t do any moves, than he has lost the game
+            if len(action_space_p_one) == 0:
+                reason = "PLayer one is blocked and can´t move!"
+                winner = self.player_one.name
+                break
             move, stone_id = self.player_one.play_turn(action_space_p_one)
             self.board.move_stone(move, stone_id)
             self.board.refresh_board()
@@ -49,6 +52,11 @@ class Game:
                 break
 
             action_space_p_two =self.get_action_space(self.player_two.name)
+            # if player is blocked and can´t do any moves, than he has lost the game
+            if len(action_space_p_two ) == 0:
+                reason = "PLayer two is blocked and can´t move!"
+                winner = self.player_two.name
+                break
             move, stone_id = self.player_two.play_turn(action_space_p_two)
             self.board.move_stone(move, stone_id)
             self.board.refresh_board()

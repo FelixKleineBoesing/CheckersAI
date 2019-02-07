@@ -16,6 +16,7 @@ class Stone:
         self.value = value
         self.removed = False
         self.board_size = board_size
+        self.recursion_level = 0
 
     @property
     def coord(self):
@@ -75,7 +76,7 @@ class Stone:
                     if len(moves_tmp) > 0:
                         moves += moves_tmp
                     else:
-                        moves += [{"new_coord": coord_jump, "jumped_stones": jumped_stones, "jumped_values": value_board}]
+                        moves += [{"new_coord": coord_jump, "jumped_stones": jumped_stones, "jumped_values": abs(value_board)}]
                 i += 1
                 # break if normal stone, because they can only move one field
                 if abs(self.value) == 1:
@@ -85,6 +86,7 @@ class Stone:
     def jump_chain(self, directions: list, board: np.ndarray, coord: tuple, board_size: int,
                    value_jumped: int, jumped_stones: list):
         moves = []
+        coord_original = coord
         for direction in directions:
             # copy jumped stone list
             jumped_stones_tmp = copy.deepcopy(jumped_stones)
@@ -93,7 +95,7 @@ class Stone:
             tmp_moves = []
             # while loop because ladies can move mutiple steps
             while within_board:
-                coord = coord + direction * i
+                coord = coord_original + direction * i
                 within_board = self._check_if_position_on_board(coord, board_size)
                 # break if first step is already out of board
                 if not within_board:
@@ -101,6 +103,13 @@ class Stone:
                 value_board = board[coord[0], coord[1]]
                 # break if there is a stone of them same player in the way
                 if value_board < 0 and self.value < 0 or value_board > 0 and self.value > 0:
+                    break
+                already_jumped = False
+                for jumped_coord in jumped_stones_tmp:
+                    if coord[0] == jumped_coord[0] and coord[1] == jumped_coord[1]:
+                        already_jumped = True
+                        break
+                if already_jumped:
                     break
                 # if there if a stone of the enemy
                 if value_board < 0 and self.value > 0 or value_board > 0 and self.value < 0:
@@ -113,10 +122,11 @@ class Stone:
                         break
                     jumped_stones_tmp += [coord]
                     tmp_jumped_values = abs(value_jumped) + abs(value_board)
+                    self.recursion_level += 1
                     tmp_moves += self.jump_chain(directions, board, coord_jump, board_size, tmp_jumped_values,
                                              jumped_stones_tmp)
                     if len(tmp_moves) == 0:
-                        moves += [{"new_coord": coord, "jumped_stones": jumped_stones_tmp, "jumped_values": tmp_jumped_values}]
+                        moves += [{"new_coord": coord, "jumped_stones": jumped_stones_tmp, "jumped_values": abs(tmp_jumped_values)}]
                     else:
                         moves += tmp_moves
                 i += 1
@@ -131,7 +141,7 @@ class Stone:
 
     @staticmethod
     def _check_if_position_on_board(coord: tuple, board_size: int):
-        in_row = coord[0] in range(board_size - 1)
-        in_col = coord[1] in range(board_size - 1)
+        in_row = coord[0] in range(board_size)
+        in_col = coord[1] in range(board_size)
         return in_row and in_col
 

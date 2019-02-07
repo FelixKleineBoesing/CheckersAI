@@ -80,14 +80,15 @@ class Board:
         print(self.board)
 
     def move_stone(self, move: dict, stone_id):
-        for stone in self.stones:
-            if stone.id == stone_id:
-                stone.coord = move["new_coord"]
-                break
         for coord in move["jumped_stones"]:
             for stone in self.stones:
                 if coord[0] == stone.coord[0] and coord[1] == stone.coord[1]:
                     stone.removed = True
+                    continue
+        for stone in self.stones:
+            if stone.id == stone_id:
+                stone.coord = move["new_coord"]
+                break
 
     def number_of_stones(self):
         number_stones = 0
