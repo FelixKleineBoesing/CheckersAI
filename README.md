@@ -2,6 +2,7 @@
 Checkers Framework for Reinforcement Learning 
 
 This is a small project to develop a reinforcement learning model. 
+Feel free to contribute!
 
 Finished:
 - Checkers Framework
