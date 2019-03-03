@@ -1,0 +1,32 @@
+#Author: Felix Kleine Bösing
+# Compose for checkers app (python backend, react frontend)
+
+version: '2'
+
+services:
+
+  pybackend:
+    build: ./python_backend/
+    image: checkers_python_backend
+    restart: never
+    container_name: checkers_python
+    volumes:
+      - ./python_backend/src:/src/
+    networks:
+      - pyjs
+    environment:
+      - test=123
+
+  react_app:
+    build: ./react_app/
+    image: checkers_react_frontend
+    restart: never
+    container_name: checkers_react
+    volumes:
+      - ./react_app:/src/
+    networks:
+      - pyjs
+    environment:
+      - test=123
+networks:
+  pyjs:
