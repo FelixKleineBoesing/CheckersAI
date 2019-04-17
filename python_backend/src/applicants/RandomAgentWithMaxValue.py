@@ -1,9 +1,14 @@
-from ..Applicant import Applicant
+from ..Agent import Agent
 import random
 
-class RandomPlayerWithMaxValue(Applicant):
+class RandomAgentWithMaxValue(Agent):
 
     def __init__(self, name: str, side: str = "up"):
+        """
+        chooses actions randomly from actions with max jumoed stones
+        :param name:
+        :param side:
+        """
         super().__init__(name, side)
 
     def decision(self, action_space: dict):
