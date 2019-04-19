@@ -1,5 +1,6 @@
 from ..Agent import Agent
 import random
+import numpy as np
 
 class RandomAgentWithMaxValue(Agent):
 
@@ -11,7 +12,7 @@ class RandomAgentWithMaxValue(Agent):
         """
         super().__init__(name, side)
 
-    def decision(self, action_space: dict):
+    def decision(self, state_space: np.ndarray, action_space: dict):
 
         max_value = 0
         for key in action_space.keys():

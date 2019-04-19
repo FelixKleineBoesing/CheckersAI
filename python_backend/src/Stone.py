@@ -1,12 +1,12 @@
 import numpy as np
 import copy
 
-from src.Applicant import Applicant
+from python_backend.src.Agent import Agent
 
 
 class Stone:
 
-    def __init__(self,id: int,  player: Applicant, coord: np.ndarray, status: str, value: int,
+    def __init__(self,id: int,  player: Agent, coord: np.ndarray, status: str, value: int,
                  board_size: int):
         self.id = id
         self.player = player

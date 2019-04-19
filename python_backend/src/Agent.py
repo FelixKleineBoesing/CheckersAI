@@ -1,4 +1,5 @@
 import abc
+import numpy as np
 
 
 class Agent(abc.ABC):
@@ -13,19 +14,19 @@ class Agent(abc.ABC):
         self.name = name
         self.side = side
 
-    def play_turn(self, action_space: dict):
+    def play_turn(self, state_space: np.ndarray, action_space: dict):
         """
         get all possible actions and decide which action to take
         :param action_space:
         :return:
         """
-        decision = self.decision(action_space)
+        decision = self.decision(state_space, action_space)
         move = action_space[decision["stone_id"]][decision["move_id"]]
         stone_id = decision["stone_id"]
         return move, stone_id
 
     @abc.abstractmethod
-    def decision(self, action_space):
+    def decision(self, state_space: np.ndarray, action_space: dict):
         """
         this function must implement a decision based in the action_space and other delivered arguments
         return must be a dictionary with the following keys: "stone_id" and "move_index" which indicates

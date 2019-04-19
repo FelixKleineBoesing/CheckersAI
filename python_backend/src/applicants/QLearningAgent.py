@@ -3,7 +3,7 @@ import random
 import numpy as np
 
 
-class DeepQAgent(Agent):
+class QLearningAgent(Agent):
 
     def __init__(self, network, name: str, side: str = "up"):
         """
@@ -15,7 +15,7 @@ class DeepQAgent(Agent):
         self.network = network
         super().__init__(name, side)
 
-    def decision(self, action_space: dict):
+    def decision(self, state_space: np.ndarray, action_space: dict):
         pass
 
         #return {"stone_id": stone_id, "move_id": move_id}

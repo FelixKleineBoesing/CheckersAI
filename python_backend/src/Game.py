@@ -1,13 +1,13 @@
-from src.Board import Board
-from src.Applicant import Applicant
+from python_backend.src.Board import Board
+from python_backend.src.Agent import Agent
 
 
 class Game:
 
-    def __init__(self, name: str, player_one: Applicant, player_two: Applicant,
+    def __init__(self, name: str, player_one: Agent, player_two: Agent,
                  board: Board):
-        assert isinstance(player_one, Applicant)
-        assert isinstance(player_two, Applicant)
+        assert isinstance(player_one, Agent)
+        assert isinstance(player_two, Agent)
         assert isinstance(board, Board)
         self.name = name
 
@@ -42,6 +42,7 @@ class Game:
                 reason = "PLayer one is blocked and can´t move!"
                 winner = self.player_one.name
                 break
+            #TODO add states  space to play turn call
             move, stone_id = self.player_one.play_turn(action_space_p_one)
             self.board.move_stone(move, stone_id)
             self.board.refresh_board()
@@ -51,12 +52,13 @@ class Game:
             if finished:
                 break
 
-            action_space_p_two =self.get_action_space(self.player_two.name)
+            action_space_p_two = self.get_action_space(self.player_two.name)
             # if player is blocked and can´t do any moves, than he has lost the game
             if len(action_space_p_two ) == 0:
                 reason = "PLayer two is blocked and can´t move!"
                 winner = self.player_two.name
                 break
+            # TODO add states  space to play turn call
             move, stone_id = self.player_two.play_turn(action_space_p_two)
             self.board.move_stone(move, stone_id)
             self.board.refresh_board()

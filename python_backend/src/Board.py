@@ -1,8 +1,8 @@
 import numpy as np
 from functools import reduce
 
-from src.Stone import Stone
-from src.Applicant import Applicant
+from python_backend.src.Stone import Stone
+from python_backend.src.Agent import Agent
 
 
 class Board:
@@ -16,7 +16,7 @@ class Board:
         self.board = [[0 for x in range(self.board_length)] for y in range(self.board_length)]
         self.board = np.array(self.board)
 
-    def init_stones(self, player_one: Applicant, player_two: Applicant):
+    def init_stones(self, player_one: Agent, player_two: Agent):
         n = 1
         stones = []
         for i in range(self.board_length):
