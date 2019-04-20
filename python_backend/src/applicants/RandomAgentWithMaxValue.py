@@ -4,13 +4,13 @@ import numpy as np
 
 class RandomAgentWithMaxValue(Agent):
 
-    def __init__(self, name: str, side: str = "up"):
+    def __init__(self, state_shape: tuple, action_shape: tuple, name: str, side: str = "up"):
         """
         chooses actions randomly from actions with max jumoed stones
         :param name:
         :param side:
         """
-        super().__init__(name, side)
+        super().__init__(state_shape, action_shape, name, side)
 
     def decision(self, state_space: np.ndarray, action_space: dict):
 

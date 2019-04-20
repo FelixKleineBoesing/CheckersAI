@@ -4,7 +4,7 @@ import numpy as np
 
 class Agent(abc.ABC):
 
-    def __init__(self, name: str, side: str = "up"):
+    def __init__(self, state_shape: tuple, action_shape: tuple, name: str, side: str = "up"):
         """
         abstract class for agent which define the general interface for Agents
         :param name:
