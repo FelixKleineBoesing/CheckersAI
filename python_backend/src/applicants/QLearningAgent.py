@@ -25,9 +25,9 @@ class QLearningAgent(Agent):
 
             # let's create a network for approximate q-learning following guidelines above
             self.network.add(Dense(action_shape[0] * action_shape[1], activation="relu", input_shape=state_shape))
-            #self.network.add(Dense(64, activation="relu"))
-            #self.network.add(Dense(64, activation="relu"))
-            #self.network.add(Dense(64, activation="relu"))
+            self.network.add(Dense(64, activation="relu"))
+            self.network.add(Dense(64, activation="relu"))
+            self.network.add(Dense(64, activation="relu"))
             #self.network.add(Flatten())
             self.network.add(Dense(action_shape[0], activation="linear"))
 
@@ -41,8 +41,10 @@ class QLearningAgent(Agent):
         super().__init__(state_shape, action_shape, name, side)
 
     def decision(self, state_space: np.ndarray, action_space: dict):
+        #preprocess state space
+        state_space = (state_space.astype('float32') - np.min(state_space)) / (np.max(state_space) - np.min(state_space))
         qvalues = self._get_qvalues([state_space])
-        action = self._sample_actions(qvalues, action_space)
+        stone_id, move_id = self._sample_actions(qvalues, action_space)
         # TODO return right stone and move id
         return {"stone_id": stone_id, "move_id": move_id}
 
@@ -54,19 +56,28 @@ class QLearningAgent(Agent):
     def _sample_actions(self, qvalues, action_space):
         """pick actions given qvalues. Uses epsilon-greedy exploration strategy. """
         epsilon = self.epsilon
-        batch_size, n_actions = qvalues.shape
-        random_actions = np.random.choice(n_actions, size=batch_size)
-        best_actions = qvalues.argmax(axis=-1)
-        should_explore = np.random.choice([0, 1], batch_size, p=[1 - epsilon, epsilon])
-        # TODO Consider only those actions that are valid
-        return np.where(should_explore, random_actions, best_actions)
+        batch_size, x, y = qvalues.shape
+        if random.random() < epsilon:
+            keys = [key for key in action_space.keys()]
+            ix = random.sample(range(len(keys)), 1)[0]
+            stone_id = keys[ix]
+            move_id = random.sample(range(len(action_space[stone_id])), 1)[0]
+        else:
+            # TODO order decreasing by a value and choose one of those actions with the highest prob and random stone
+            xx, yy = np.meshgrid(np.arange(qvalues.shape[2]), np.arange(qvalues.shape[1]))
+            table = np.vstack((qvalues.ravel(), xx.ravel(), yy.ravel())).T
+            indices = np.unravel_index(np.argmax(qvalues, axis=None), qvalues.shape)[1:3]
+            # TODO sort for highest value and chooses this action if its valid for at least one stone, then choose stone
+
+
+
+
+        return stone_id, move_id
 
     def _get_symbolic_qvalues(self, state_t):
         """takes agent's observation, returns qvalues. Both are tf Tensors"""
         qvalues = self.network(state_t)
-
         return qvalues
-
 
 
 class Learner:

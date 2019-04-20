@@ -15,6 +15,7 @@ class RandomAgent(Agent):
     def decision(self, state_space: np.ndarray, action_space: dict):
         """
         choose action randomly from given actions space
+        :param state_space:
         :param action_space:
         :return:
         """
