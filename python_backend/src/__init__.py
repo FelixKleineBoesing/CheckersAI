@@ -14,7 +14,7 @@ if __name__=="__main__":
         board = Board(board_length=8)
         player_two = RandomAgent((board_length, board_length), (board_length, board_length), "Two", "down")
         game = Game("Test", player_one=player_one, player_two=player_two, board=board)
-        game.play(verbose = True)
+        game.play(verbose=False)
         winners += [game.winner]
         victories_player_two = 0
         victories_player_one = 0

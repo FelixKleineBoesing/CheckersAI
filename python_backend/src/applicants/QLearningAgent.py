@@ -66,11 +66,26 @@ class QLearningAgent(Agent):
             # TODO order decreasing by a value and choose one of those actions with the highest prob and random stone
             xx, yy = np.meshgrid(np.arange(qvalues.shape[2]), np.arange(qvalues.shape[1]))
             table = np.vstack((qvalues.ravel(), xx.ravel(), yy.ravel())).T
-            indices = np.unravel_index(np.argmax(qvalues, axis=None), qvalues.shape)[1:3]
-            # TODO sort for highest value and chooses this action if its valid for at least one stone, then choose stone
-
-
-
+            table = table[table[:,0].argsort()]
+            i = -1
+            found = False
+            while True:
+                for stone in action_space.keys():
+                    j = 0
+                    for action in action_space[stone]:
+                        coord = action["new_coord"]
+                        if coord[0] == int(table[i, 1]) and coord[1] == int(table[i, 2]):
+                            stone_id = stone
+                            move_id = j
+                            found = True
+                            break
+                        else:
+                            j += 1
+                    if found:
+                        break
+                if found:
+                    break
+                i -= 1
 
         return stone_id, move_id
 
