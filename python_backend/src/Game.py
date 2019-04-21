@@ -1,20 +1,29 @@
 from python_backend.src.Board import Board
 from python_backend.src.Agent import Agent
+from python_backend.src.Helpers import Rewards
+from python_backend.src.Helpers import DefaultRewards
+import logging
 
 
 class Game:
 
     def __init__(self, name: str, player_one: Agent, player_two: Agent,
-                 board: Board):
+                 board: Board, rewards: Rewards):
         assert isinstance(player_one, Agent)
         assert isinstance(player_two, Agent)
         assert isinstance(board, Board)
+        if rewards is not None:
+            assert isinstance(rewards, Rewards)
+        else:
+            logging.info("No reward function supplied! Default rewards will be used as specified in Helpers.py")
+            rewards = DefaultRewards
         self.name = name
 
         # init players
         self.player_one = player_one
         self.player_two = player_two
         self.winner = None
+        self.reward_mapping = rewards
 
         # init board
         self.board = board
@@ -43,12 +52,16 @@ class Game:
                 winner = self.player_one.name
                 break
             move, stone_id = self.player_one.play_turn(self.board.board, action_space_p_one)
-            self.board.move_stone(move, stone_id)
+            reward = self.board.move_stone(move, stone_id)
             self.board.refresh_board()
+            state = self.board.board
             if verbose:
                 print("--------Player One moved-----------")
                 self.board.print_board()
             finished, reason, winner = self.game_finished(turns_without_removed_stone)
+            if finished:
+                if winner == self.player_one.name:
+                    reward += 100
             if finished:
                 break
 
@@ -59,8 +72,9 @@ class Game:
                 winner = self.player_two.name
                 break
             move, stone_id = self.player_two.play_turn(self.board.board, action_space_p_two)
-            self.board.move_stone(move, stone_id)
+            reward = self.board.move_stone(move, stone_id)
             self.board.refresh_board()
+            state = self.board.board
             if verbose:
                 print("--------Player two moved-----------")
                 self.board.print_board()
@@ -68,7 +82,9 @@ class Game:
             turns_without_removed_stone = turns_without_removed_stone + 1 if number_stones_after == \
                                                                              number_stones_before else 0
             finished, reason, winner = self.game_finished(turns_without_removed_stone)
-
+            if finished:
+                if winner == self.player_two.name:
+                    reward += 100
         if verbose:
             print("Game finished with the following message: {}".format(reason))
         self.winner = winner

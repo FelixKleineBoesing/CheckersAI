@@ -10,7 +10,7 @@ if __name__=="__main__":
     winners = []
     board_length = 8
     player_one = QLearningAgent((board_length, board_length), (board_length, board_length), "One", "up", 1.0)
-    for i in range(1000):
+    for i in range(30000):
         board = Board(board_length=8)
         player_two = RandomAgent((board_length, board_length), (board_length, board_length), "Two", "down")
         game = Game("Test", player_one=player_one, player_two=player_two, board=board)
