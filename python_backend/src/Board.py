@@ -3,6 +3,7 @@ from functools import reduce
 
 from python_backend.src.Stone import Stone
 from python_backend.src.Agent import Agent
+from python_backend.src.Helpers import Rewards
 
 
 class Board:
@@ -17,7 +18,7 @@ class Board:
         self.board = np.array(self.board)
 
     def init_stones(self, player_one: Agent, player_two: Agent):
-        n = 1
+        n = 0
         stones = []
         for i in range(self.board_length):
             if i <= 2:
@@ -79,19 +80,21 @@ class Board:
     def print_board(self):
         print(self.board)
 
-    def move_stone(self, move: dict, stone_id):
-        reward = 0
+    def move_stone(self, move: dict, stone_id: int, rewards: Rewards):
+        reward_active = 0
+        reward_passive = 0
         for coord in move["jumped_stones"]:
             for stone in self.stones:
                 if coord[0] == stone.coord[0] and coord[1] == stone.coord[1]:
                     stone.removed = True
-                    reward += abs(stone.value)
+                    reward_active += rewards.normal_stone_taken if abs(stone.value) == 1 else rewards.queen_stone_taken
+                    reward_passive += rewards.normal_stone_loss if abs(stone.value) == 1 else rewards.queen_stone_loss
                     continue
         for stone in self.stones:
             if stone.id == stone_id:
                 stone.coord = move["new_coord"]
                 break
-        return reward
+        return reward_active, reward_passive
 
     def number_of_stones(self):
         number_stones = 0

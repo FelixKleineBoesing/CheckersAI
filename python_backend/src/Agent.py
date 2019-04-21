@@ -25,6 +25,18 @@ class Agent(abc.ABC):
         stone_id = decision["stone_id"]
         return move, stone_id
 
+    def get_feedback(self, state, action, reward, next_state, finished):
+        """
+        through this function the agent gtes informations about the last turn
+        :param state:
+        :param action:
+        :param reward:
+        :param next_state:
+        :param finished:
+        :return:
+        """
+        pass
+
     @abc.abstractmethod
     def decision(self, state_space: np.ndarray, action_space: dict):
         """

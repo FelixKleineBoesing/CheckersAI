@@ -1,29 +1,26 @@
 from python_backend.src.Board import Board
 from python_backend.src.Agent import Agent
 from python_backend.src.Helpers import Rewards
-from python_backend.src.Helpers import DefaultRewards
+from python_backend.src.Helpers import default_rewards
 import logging
+import numpy as np
 
 
 class Game:
 
     def __init__(self, name: str, player_one: Agent, player_two: Agent,
-                 board: Board, rewards: Rewards):
+                 board: Board, rewards: Rewards = default_rewards):
         assert isinstance(player_one, Agent)
         assert isinstance(player_two, Agent)
         assert isinstance(board, Board)
-        if rewards is not None:
-            assert isinstance(rewards, Rewards)
-        else:
-            logging.info("No reward function supplied! Default rewards will be used as specified in Helpers.py")
-            rewards = DefaultRewards
+        assert isinstance(rewards, Rewards)
         self.name = name
 
         # init players
         self.player_one = player_one
         self.player_two = player_two
         self.winner = None
-        self.reward_mapping = rewards
+        self.rewards = rewards
 
         # init board
         self.board = board
@@ -41,8 +38,10 @@ class Game:
         turns_without_removed_stone = 0
 
         while not finished:
+            reward_player_one, reward_player_two = 0, 0
             number_stones_before = self.board.number_of_stones()
             self.turns += 1
+
             if verbose:
                 print("Iteration:{}".format(self.turns))
             action_space_p_one = self.get_action_space(self.player_one.name)
@@ -52,16 +51,22 @@ class Game:
                 winner = self.player_one.name
                 break
             move, stone_id = self.player_one.play_turn(self.board.board, action_space_p_one)
-            reward = self.board.move_stone(move, stone_id)
-            self.board.refresh_board()
+            action = np.array([self.board.stones[stone_id].coord, move["new_coord"]])
+            rpo, rpt = self.board.move_stone(move, stone_id, self.rewards)
+            reward_player_one += self.rewards.turn + rpo
+            reward_player_two += rpt
             state = self.board.board
+            self.board.refresh_board()
+            next_state = self.board.board
             if verbose:
                 print("--------Player One moved-----------")
                 self.board.print_board()
             finished, reason, winner = self.game_finished(turns_without_removed_stone)
             if finished:
                 if winner == self.player_one.name:
-                    reward += 100
+                    reward_player_one += self.rewards.win
+                    reward_player_two += self.rewards.loss
+            self.player_one.get_feedback(state, action, next_state, reward_player_one, finished)
             if finished:
                 break
 
@@ -72,7 +77,10 @@ class Game:
                 winner = self.player_two.name
                 break
             move, stone_id = self.player_two.play_turn(self.board.board, action_space_p_two)
-            reward = self.board.move_stone(move, stone_id)
+            action = np.array([self.board.stones[stone_id].coord, move["new_coord"]])
+            rpt, rpo = self.board.move_stone(move, stone_id, self.rewards)
+            reward_player_two += self.rewards.turn + rpt
+            reward_player_one += rpo
             self.board.refresh_board()
             state = self.board.board
             if verbose:
@@ -84,7 +92,9 @@ class Game:
             finished, reason, winner = self.game_finished(turns_without_removed_stone)
             if finished:
                 if winner == self.player_two.name:
-                    reward += 100
+                    reward_player_two += self.rewards.win
+                    reward_player_one += self.rewards.loss
+            self.player_two.get_feedback(state, action, next_state, reward_player_one, finished)
         if verbose:
             print("Game finished with the following message: {}".format(reason))
         self.winner = winner

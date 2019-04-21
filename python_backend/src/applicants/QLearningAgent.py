@@ -3,8 +3,7 @@ import random
 import numpy as np
 import tensorflow as tf
 import random
-tf.reset_default_graph()
-sess = tf.InteractiveSession()
+import copy
 
 from keras.layers import Conv2D, Dense, Flatten
 import keras
@@ -38,7 +37,9 @@ class QLearningAgent(Agent):
 
         self.weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=name)
         self.epsilon = epsilon
-        sess.run(tf.global_variables_initializer())
+        self.target_network = copy.deepcopy(self.network)
+        self.target_weight = copy.deepcopy(self.weights)
+        self.exp_buffer = ReplayBuffer(200)
         super().__init__(state_shape, action_shape, name, side)
 
     def decision(self, state_space: np.ndarray, action_space: dict):
@@ -90,37 +91,63 @@ class QLearningAgent(Agent):
 
         return stone_id, move_id
 
+    def get_feedback(self, state, action, reward, next_state, finished):
+        self.exp_buffer.add(state, action, reward, next_state, finished)
+        pass
+
     def _get_symbolic_qvalues(self, state_t):
         """takes agent's observation, returns qvalues. Both are tf Tensors"""
         qvalues = self.network(state_t)
         return qvalues
 
-
-class Learner:
-
-    def __init__(self, network):
-        """
-        Learner, which takes the states and actions from Agent and learn with the same network
-        :param network:
-        """
-        self.network = network
-
-
-    def train_network(self, states: np.ndarray, actions: np.ndarray):
-        """
-        trains network with states and actions from Agent
-        :param states:
-        :param actions:
-        :return:
-        """
+    def _train_network(self):
         pass
 
-    def return_network_weights(self):
-        """
-        returns network weights for updating of Agent
-        :return:
-        """
+    def _adjust_agent_parameters(self):
         pass
+
+    def _configure_target_model(self):
+        # placeholders that will be fed with exp_replay.sample(batch_size)
+        obs_ph = tf.placeholder(tf.float32, shape=(None,) + state_dim)
+        actions_ph = tf.placeholder(tf.int32, shape=[None])
+        rewards_ph = tf.placeholder(tf.float32, shape=[None])
+        next_obs_ph = tf.placeholder(tf.float32, shape=(None,) + state_dim)
+        is_done_ph = tf.placeholder(tf.float32, shape=[None])
+
+        is_not_done = 1 - is_done_ph
+        gamma = 0.99
+        current_qvalues = agent.get_symbolic_qvalues(obs_ph)
+        current_action_qvalues = tf.reduce_sum(tf.one_hot(actions_ph, n_actions) * current_qvalues, axis=1)
+        # compute q-values for NEXT states with target network
+        next_qvalues_target = target_network.get_symbolic_qvalues(next_obs_ph)
+
+        # compute state values by taking max over next_qvalues_target for all actions
+        next_state_values_target = tf.reduce_max(next_qvalues_target, axis=-1)
+
+        # compute Q_reference(s,a) as per formula above.
+        reference_qvalues = rewards_ph + gamma * next_state_values_target * is_not_done
+
+        # Define loss function for sgd.
+        td_loss = (current_action_qvalues - reference_qvalues) ** 2
+        td_loss = tf.reduce_mean(td_loss)
+
+        train_step = tf.train.AdamOptimizer(1e-3).minimize(td_loss, var_list=agent.weights)
+        sess.run(tf.global_variables_initializer())
+
+
+    def load_weigths_into_target_network(agent, target_network):
+        """ assign target_network.weights variables to their respective agent.weights values. """
+        assigns = []
+        for w_agent, w_target in zip(agent.weights, target_network.weights):
+            assigns.append(tf.assign(w_target, w_agent, validate_shape=True))
+        tf.get_default_session().run(assigns)
+
+    def _sample_batch(exp_replay, batch_size):
+        obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch = exp_replay.sample(batch_size)
+        return {
+            obs_ph: obs_batch, actions_ph: act_batch, rewards_ph: reward_batch,
+            next_obs_ph: next_obs_batch, is_done_ph: is_done_batch
+        }
 
 
 class ReplayBuffer(object):
@@ -182,3 +209,13 @@ class ReplayBuffer(object):
         """
         idxes = [random.randint(0, len(self._storage) - 1) for _ in range(batch_size)]
         return self._encode_sample(idxes)
+
+
+
+
+def load_weigths_into_target_network(agent, target_network):
+    """ assign target_network.weights variables to their respective agent.weights values. """
+    assigns = []
+    for w_agent, w_target in zip(agent.weights, target_network.weights):
+        assigns.append(tf.assign(w_target, w_agent, validate_shape=True))
+    tf.get_default_session().run(assigns)
