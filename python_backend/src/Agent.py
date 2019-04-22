@@ -13,6 +13,8 @@ class Agent(abc.ABC):
         assert side in ["up", "down"], "Side has to be up or down"
         self.name = name
         self.side = side
+        self.state_shape = state_shape
+        self.action_shape = action_shape
 
     def play_turn(self, state_space: np.ndarray, action_space: dict):
         """

@@ -24,10 +24,10 @@ class QLearningAgent(Agent):
             self.network = keras.models.Sequential()
 
             # let's create a network for approximate q-learning following guidelines above
-            self.network.add(Dense(action_shape[0] * action_shape[1], activation="relu", input_shape=state_shape))
-            self.network.add(Dense(64, activation="relu"))
-            self.network.add(Dense(64, activation="relu"))
-            self.network.add(Dense(64, activation="relu"))
+            self.network.add(Dense(256, activation="relu", input_shape=state_shape))
+            self.network.add(Dense(256, activation="relu"))
+            self.network.add(Dense(256, activation="relu"))
+            self.network.add(Dense(256, activation="relu"))
             #self.network.add(Flatten())
             self.network.add(Dense(action_shape[0], activation="linear"))
 
@@ -108,15 +108,15 @@ class QLearningAgent(Agent):
 
     def _configure_target_model(self):
         # placeholders that will be fed with exp_replay.sample(batch_size)
-        obs_ph = tf.placeholder(tf.float32, shape=(None,) + state_dim)
+        obs_ph = tf.placeholder(tf.float32, shape=(None,) + self.state_shape)
         actions_ph = tf.placeholder(tf.int32, shape=[None])
         rewards_ph = tf.placeholder(tf.float32, shape=[None])
-        next_obs_ph = tf.placeholder(tf.float32, shape=(None,) + state_dim)
+        next_obs_ph = tf.placeholder(tf.float32, shape=(None,) + self.state_shape)
         is_done_ph = tf.placeholder(tf.float32, shape=[None])
 
         is_not_done = 1 - is_done_ph
         gamma = 0.99
-        current_qvalues = agent.get_symbolic_qvalues(obs_ph)
+        current_qvalues = self._get_symbolic_qvalues(obs_ph)
         current_action_qvalues = tf.reduce_sum(tf.one_hot(actions_ph, n_actions) * current_qvalues, axis=1)
         # compute q-values for NEXT states with target network
         next_qvalues_target = target_network.get_symbolic_qvalues(next_obs_ph)
@@ -209,8 +209,6 @@ class ReplayBuffer(object):
         """
         idxes = [random.randint(0, len(self._storage) - 1) for _ in range(batch_size)]
         return self._encode_sample(idxes)
-
-
 
 
 def load_weigths_into_target_network(agent, target_network):
