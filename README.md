@@ -6,9 +6,11 @@ Feel free to contribute!
 
 Finished:
 - Checkers Framework
+- Random Agents
 
 In Development:
-- Integration of Informations like action_space, current_space, etc. for RL Agent
-- RL Agent
+- Deep Q Learning Agent
 - React Frontend for Vizualisation
 - Python Rest Interface
+
+#### TODO Manual about setup and usage 
