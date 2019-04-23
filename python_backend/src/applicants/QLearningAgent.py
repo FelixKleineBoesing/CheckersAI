@@ -20,6 +20,9 @@ class QLearningAgent(Agent):
         :param side: is he going to start at the top or at the bottom?
         :param epsilon: exploration factor
         """
+        self.n_actions = 1
+        for i in range(len(action_shape)):
+            self.n_actions = self.n_actions * action_shape[i]
         with tf.variable_scope(name, reuse=False):
             self.network = keras.models.Sequential()
 
@@ -117,8 +120,9 @@ class QLearningAgent(Agent):
         is_not_done = 1 - is_done_ph
         gamma = 0.99
         current_qvalues = self._get_symbolic_qvalues(obs_ph)
-        current_action_qvalues = tf.reduce_sum(tf.one_hot(actions_ph, n_actions) * current_qvalues, axis=1)
+        current_action_qvalues = tf.reduce_sum(tf.one_hot(actions_ph, self.n_actions) * current_qvalues, axis=1)
         # compute q-values for NEXT states with target network
+        # TODO perhaps move target_network in own class
         next_qvalues_target = target_network.get_symbolic_qvalues(next_obs_ph)
 
         # compute state values by taking max over next_qvalues_target for all actions
