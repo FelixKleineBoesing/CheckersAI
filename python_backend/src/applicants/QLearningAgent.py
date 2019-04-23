@@ -27,12 +27,14 @@ class QLearningAgent(Agent):
             self.network = keras.models.Sequential()
 
             # let's create a network for approximate q-learning following guidelines above
-            self.network.add(Dense(256, activation="relu", input_shape=state_shape))
-            self.network.add(Dense(256, activation="relu"))
-            self.network.add(Dense(256, activation="relu"))
-            self.network.add(Dense(256, activation="relu"))
+            # input shape: X x Y (board size)
+            self.network.add(Dense(512, activation="relu", input_shape=state_shape))
+            self.network.add(Dense(1024, activation="relu"))
+            self.network.add(Dense(2048, activation="relu"))
+            self.network.add(Dense(4096, activation="relu"))
             #self.network.add(Flatten())
-            self.network.add(Dense(action_shape[0], activation="linear"))
+            # outpu shape: X_From x Y_From x X_To x Y_To (board size x action shape)
+            self.network.add(Dense(action_shape + action_shape, activation="linear"))
 
             # prepare a graph for agent step
             self.state_t = tf.placeholder('float32', [None, ] + list(state_shape))
@@ -123,7 +125,7 @@ class QLearningAgent(Agent):
         current_action_qvalues = tf.reduce_sum(tf.one_hot(actions_ph, self.n_actions) * current_qvalues, axis=1)
         # compute q-values for NEXT states with target network
         # TODO perhaps move target_network in own class
-        next_qvalues_target = target_network.get_symbolic_qvalues(next_obs_ph)
+        next_qvalues_target = self.target_network(next_obs_ph)
 
         # compute state values by taking max over next_qvalues_target for all actions
         next_state_values_target = tf.reduce_max(next_qvalues_target, axis=-1)
@@ -135,7 +137,7 @@ class QLearningAgent(Agent):
         td_loss = (current_action_qvalues - reference_qvalues) ** 2
         td_loss = tf.reduce_mean(td_loss)
 
-        train_step = tf.train.AdamOptimizer(1e-3).minimize(td_loss, var_list=agent.weights)
+        train_step = tf.train.AdamOptimizer(1e-3).minimize(td_loss, var_list=self.weights)
         sess.run(tf.global_variables_initializer())
 
 
@@ -146,12 +148,12 @@ class QLearningAgent(Agent):
             assigns.append(tf.assign(w_target, w_agent, validate_shape=True))
         tf.get_default_session().run(assigns)
 
-    def _sample_batch(exp_replay, batch_size):
-        obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch = exp_replay.sample(batch_size)
-        return {
-            obs_ph: obs_batch, actions_ph: act_batch, rewards_ph: reward_batch,
-            next_obs_ph: next_obs_batch, is_done_ph: is_done_batch
-        }
+def _sample_batch(exp_replay, batch_size):
+    obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch = exp_replay.sample(batch_size)
+    return {
+        obs_ph: obs_batch, actions_ph: act_batch, rewards_ph: reward_batch,
+        next_obs_ph: next_obs_batch, is_done_ph: is_done_batch
+    }
 
 
 class ReplayBuffer(object):
