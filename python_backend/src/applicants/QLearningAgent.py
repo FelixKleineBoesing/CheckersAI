@@ -141,7 +141,7 @@ class QLearningAgent(Agent):
         sess.run(tf.global_variables_initializer())
 
 
-    def load_weigths_into_target_network(agent, target_network):
+    def load_weigths_into_target_network(self, agent, target_network):
         """ assign target_network.weights variables to their respective agent.weights values. """
         assigns = []
         for w_agent, w_target in zip(agent.weights, target_network.weights):
@@ -215,11 +215,3 @@ class ReplayBuffer(object):
         """
         idxes = [random.randint(0, len(self._storage) - 1) for _ in range(batch_size)]
         return self._encode_sample(idxes)
-
-
-def load_weigths_into_target_network(agent, target_network):
-    """ assign target_network.weights variables to their respective agent.weights values. """
-    assigns = []
-    for w_agent, w_target in zip(agent.weights, target_network.weights):
-        assigns.append(tf.assign(w_target, w_agent, validate_shape=True))
-    tf.get_default_session().run(assigns)
