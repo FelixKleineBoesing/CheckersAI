@@ -45,6 +45,12 @@ class QLearningAgent(Agent):
         self.target_network = copy.deepcopy(self.network)
         self.target_weight = copy.deepcopy(self.weights)
         self.exp_buffer = ReplayBuffer(200)
+
+        self._obs_ph = tf.placeholder(tf.float32, shape=(None,) + self.state_shape)
+        self._actions_ph = tf.placeholder(tf.int32, shape=[None])
+        self._rewards_ph = tf.placeholder(tf.float32, shape=[None])
+        self._next_obs_ph = tf.placeholder(tf.float32, shape=(None,) + self.state_shape)
+        self._is_done_ph = tf.placeholder(tf.float32, shape=[None])
         super().__init__(state_shape, action_shape, name, side)
 
     def decision(self, state_space: np.ndarray, action_space: dict):
@@ -113,25 +119,19 @@ class QLearningAgent(Agent):
 
     def _configure_target_model(self):
         # placeholders that will be fed with exp_replay.sample(batch_size)
-        obs_ph = tf.placeholder(tf.float32, shape=(None,) + self.state_shape)
-        actions_ph = tf.placeholder(tf.int32, shape=[None])
-        rewards_ph = tf.placeholder(tf.float32, shape=[None])
-        next_obs_ph = tf.placeholder(tf.float32, shape=(None,) + self.state_shape)
-        is_done_ph = tf.placeholder(tf.float32, shape=[None])
-
-        is_not_done = 1 - is_done_ph
+        is_not_done = 1 - self._is_done_ph
         gamma = 0.99
-        current_qvalues = self._get_symbolic_qvalues(obs_ph)
-        current_action_qvalues = tf.reduce_sum(tf.one_hot(actions_ph, self.n_actions) * current_qvalues, axis=1)
+        current_qvalues = self._get_symbolic_qvalues(self._obs_ph)
+        current_action_qvalues = tf.reduce_sum(tf.one_hot(self._actions_ph, self.n_actions) * current_qvalues, axis=1)
         # compute q-values for NEXT states with target network
         # TODO perhaps move target_network in own class
-        next_qvalues_target = self.target_network(next_obs_ph)
+        next_qvalues_target = self.target_network(self._next_obs_ph)
 
         # compute state values by taking max over next_qvalues_target for all actions
         next_state_values_target = tf.reduce_max(next_qvalues_target, axis=-1)
 
         # compute Q_reference(s,a) as per formula above.
-        reference_qvalues = rewards_ph + gamma * next_state_values_target * is_not_done
+        reference_qvalues = self._rewards_ph + gamma * next_state_values_target * is_not_done
 
         # Define loss function for sgd.
         td_loss = (current_action_qvalues - reference_qvalues) ** 2
@@ -148,12 +148,12 @@ class QLearningAgent(Agent):
             assigns.append(tf.assign(w_target, w_agent, validate_shape=True))
         tf.get_default_session().run(assigns)
 
-def _sample_batch(exp_replay, batch_size):
-    obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch = exp_replay.sample(batch_size)
-    return {
-        obs_ph: obs_batch, actions_ph: act_batch, rewards_ph: reward_batch,
-        next_obs_ph: next_obs_batch, is_done_ph: is_done_batch
-    }
+    def _sample_batch(self, exp_replay, batch_size):
+        obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch = exp_replay.sample(batch_size)
+        return {
+            self._obs_ph: obs_batch, self._actions_ph: act_batch, self._rewards_ph: reward_batch,
+            self._next_obs_ph: next_obs_batch, self._is_done_ph: is_done_batch
+        }
 
 
 class ReplayBuffer(object):
