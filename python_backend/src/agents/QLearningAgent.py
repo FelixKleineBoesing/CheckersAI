@@ -20,9 +20,15 @@ class QLearningAgent(Agent):
         :param side: is he going to start at the top or at the bottom?
         :param epsilon: exploration factor
         """
-        self.n_actions = 1
-        for i in range(len(action_shape)):
-            self.n_actions = self.n_actions * action_shape[i]
+
+        # tensorflow related stuff
+        tf.reset_default_graph()
+        self.sess = tf.InteractiveSession()
+
+        # calculate number actions from actionshape
+        self.action = np.product(action_shape)
+
+        # define network
         with tf.variable_scope(name, reuse=False):
             self.network = keras.models.Sequential()
 
@@ -43,9 +49,10 @@ class QLearningAgent(Agent):
         self.weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=name)
         self.epsilon = epsilon
         self.target_network = copy.deepcopy(self.network)
-        self.target_weight = copy.deepcopy(self.weights)
+        self.target_weights = copy.deepcopy(self.weights)
         self.exp_buffer = ReplayBuffer(200)
 
+        # init placeholder
         self._obs_ph = tf.placeholder(tf.float32, shape=(None,) + self.state_shape)
         self._actions_ph = tf.placeholder(tf.int32, shape=[None])
         self._rewards_ph = tf.placeholder(tf.float32, shape=[None])
@@ -138,13 +145,13 @@ class QLearningAgent(Agent):
         td_loss = tf.reduce_mean(td_loss)
 
         train_step = tf.train.AdamOptimizer(1e-3).minimize(td_loss, var_list=self.weights)
-        sess.run(tf.global_variables_initializer())
+        self.sess.run(tf.global_variables_initializer())
 
 
-    def load_weigths_into_target_network(self, agent, target_network):
+    def load_weigths_into_target_network(self):
         """ assign target_network.weights variables to their respective agent.weights values. """
         assigns = []
-        for w_agent, w_target in zip(agent.weights, target_network.weights):
+        for w_agent, w_target in zip(self.weights, self.target_weights):
             assigns.append(tf.assign(w_target, w_agent, validate_shape=True))
         tf.get_default_session().run(assigns)
 
