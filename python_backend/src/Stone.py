@@ -1,7 +1,7 @@
 import numpy as np
 import copy
 
-from python_backend.src.Agent import Agent
+from python_backend.src.agents.Agent import Agent
 
 
 class Stone:
@@ -144,4 +144,3 @@ class Stone:
         in_row = coord[0] in range(board_size)
         in_col = coord[1] in range(board_size)
         return in_row and in_col
-

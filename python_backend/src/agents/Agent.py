@@ -15,11 +15,13 @@ class Agent(abc.ABC):
         self.side = side
         self.state_shape = state_shape
         self.action_shape = action_shape
+        self._number_games = 0
 
     def play_turn(self, state_space: np.ndarray, action_space: dict):
         """
         get all possible actions and decide which action to take
-        :param action_space:
+        :param action_space: np array describing the board
+        :param action_space: dictionary containing all possible moves
         :return:
         """
         decision = self.decision(state_space, action_space)
@@ -29,7 +31,7 @@ class Agent(abc.ABC):
 
     def get_feedback(self, state, action, reward, next_state, finished):
         """
-        through this function the agent gtes informations about the last turn
+        through this function the agent gets information about the last turn
         :param state:
         :param action:
         :param reward:

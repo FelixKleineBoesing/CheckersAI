@@ -1,12 +1,12 @@
-from ..Agent import Agent
-import random
 import numpy as np
 import tensorflow as tf
 import random
 import copy
-
-from keras.layers import Conv2D, Dense, Flatten
+from keras.layers import Dense
 import keras
+
+from python_backend.src.agents.Agent import Agent
+from python_backend.src.Helpers import ActionSpace
 
 
 class QLearningAgent(Agent):
@@ -60,9 +60,18 @@ class QLearningAgent(Agent):
         self._is_done_ph = tf.placeholder(tf.float32, shape=[None])
         super().__init__(state_shape, action_shape, name, side)
 
-    def decision(self, state_space: np.ndarray, action_space: dict):
+    def decision(self, state_space: np.ndarray, action_space: ActionSpace):
+        """
+        triggered by get play turn method of super class.
+        This is the method were the magic should happen that chooses the right action
+        :param state_space:
+        :param action_space:
+        :return:
+        """
         #preprocess state space
+        # normalizing state space between zero and one
         state_space = (state_space.astype('float32') - np.min(state_space)) / (np.max(state_space) - np.min(state_space))
+
         qvalues = self._get_qvalues([state_space])
         stone_id, move_id = self._sample_actions(qvalues, action_space)
         # TODO return right stone and move id
@@ -73,8 +82,13 @@ class QLearningAgent(Agent):
         sess = tf.get_default_session()
         return sess.run(self.qvalues_t, {self.state_t: state_t})
 
-    def _sample_actions(self, qvalues, action_space):
-        """pick actions given qvalues. Uses epsilon-greedy exploration strategy. """
+    def _sample_actions(self, qvalues: np.ndarray, action_space: ActionSpace):
+        """
+        pick actions given qvalues. Uses epsilon-greedy exploration strategy.
+        :param qvalues: output values from network
+        :param action_space: action_space with all possible actions
+        :return: return stone_id and move_id
+        """
         epsilon = self.epsilon
         batch_size, x, y = qvalues.shape
         if random.random() < epsilon:
@@ -117,12 +131,6 @@ class QLearningAgent(Agent):
         """takes agent's observation, returns qvalues. Both are tf Tensors"""
         qvalues = self.network(state_t)
         return qvalues
-
-    def _train_network(self):
-        pass
-
-    def _adjust_agent_parameters(self):
-        pass
 
     def _configure_target_model(self):
         # placeholders that will be fed with exp_replay.sample(batch_size)
