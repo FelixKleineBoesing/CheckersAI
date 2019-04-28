@@ -1,9 +1,9 @@
 import numpy as np
-from functools import reduce
 
 from python_backend.src.Stone import Stone
-from python_backend.src.Agent import Agent
+from python_backend.src.agents.Agent import Agent
 from python_backend.src.Helpers import Rewards
+from python_backend.src.Helpers import ActionSpace
 
 
 class Board:
@@ -51,6 +51,7 @@ class Board:
 
     def get_all_moves(self, player_name: str):
         tmp = {}
+
         # because a player must jump an enemy stone we proof here if there is any move where a stone can be jumped
         jumping_possible = False
         for stone in self.stones:
@@ -60,20 +61,20 @@ class Board:
                     if move["jumped_values"] != 0:
                         jumping_possible = True
                 tmp[stone.id] = spec_act_space
-
-        action_space = {}
+        arr = np.zeros([self.board_length] * 4)
+        action_space = ActionSpace(self.board_length)
         for id in tmp.keys():
             if len(tmp[id]) == 0:
                 continue
             if jumping_possible:
                 for i in range(len(tmp[id])):
                     if tmp[id][i]["jumped_values"] != 0:
-                        if id not in action_space:
-                            action_space[id] = [tmp[id][i]]
-                        else:
-                            action_space[id] += [tmp[id][i]]
+                        action_space.update_dict(id, tmp[id][i])
             else:
-                action_space[id] = tmp[id]
+                action_space.update_dict(id, tmp[id])
+            if id in action_space.keys():
+                for move in action_space.space_dict[id]:
+                    action_space.update_array(self.stones[id].coord, move["new_coord"])
 
         return action_space
 
@@ -114,4 +115,3 @@ class Board:
             if len(players) == 2:
                 return False, players
         return True, players
-

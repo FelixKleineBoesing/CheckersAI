@@ -1,4 +1,4 @@
-from ..Agent import Agent
+from python_backend.src.agents.Agent import Agent
 import random
 import numpy as np
 

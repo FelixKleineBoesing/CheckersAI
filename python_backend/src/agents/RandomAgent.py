@@ -1,6 +1,9 @@
-from ..Agent import Agent
 import random
 import numpy as np
+
+from python_backend.src.agents.Agent import Agent
+from python_backend.src.Helpers import ActionSpace
+
 
 class RandomAgent(Agent):
 
@@ -12,7 +15,7 @@ class RandomAgent(Agent):
         """
         super().__init__(state_shape, action_shape, name, side)
 
-    def decision(self, state_space: np.ndarray, action_space: dict):
+    def decision(self, state_space: np.ndarray, action_space: ActionSpace):
         """
         choose action randomly from given actions space
         :param state_space:
