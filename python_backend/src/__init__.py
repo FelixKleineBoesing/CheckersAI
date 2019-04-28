@@ -52,5 +52,5 @@ def run_random_vs_qlearning():
 
 
 if __name__=="__main__":
-    run_random_vs_random_max()
-    #run_random_vs_qlearning()
+    #run_random_vs_random_max()
+    run_random_vs_qlearning()
