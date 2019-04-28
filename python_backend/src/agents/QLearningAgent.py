@@ -26,7 +26,7 @@ class QLearningAgent(Agent):
         self.sess = tf.InteractiveSession()
 
         # calculate number actions from actionshape
-        self.action = np.product(action_shape)
+        self.number_actions = np.product(action_shape)
 
         # define network
         with tf.variable_scope(name, reuse=False):
@@ -40,7 +40,7 @@ class QLearningAgent(Agent):
             self.network.add(Dense(4096, activation="relu"))
             #self.network.add(Flatten())
             # outpu shape: X_From x Y_From x X_To x Y_To (board size x action shape)
-            self.network.add(Dense(action_shape + action_shape, activation="linear"))
+            self.network.add(Dense(self.number_actions, activation="linear"))
 
             # prepare a graph for agent step
             self.state_t = tf.placeholder('float32', [None, ] + list(state_shape))
@@ -48,8 +48,8 @@ class QLearningAgent(Agent):
 
         self.weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=name)
         self.epsilon = epsilon
-        self.target_network = copy.deepcopy(self.network)
-        self.target_weights = copy.deepcopy(self.weights)
+        self.target_network = self.network
+        self.target_weights = self.weights
         self.exp_buffer = ReplayBuffer(200)
 
         # init placeholder
@@ -137,7 +137,7 @@ class QLearningAgent(Agent):
         is_not_done = 1 - self._is_done_ph
         gamma = 0.99
         current_qvalues = self._get_symbolic_qvalues(self._obs_ph)
-        current_action_qvalues = tf.reduce_sum(tf.one_hot(self._actions_ph, self.n_actions) * current_qvalues, axis=1)
+        current_action_qvalues = tf.reduce_sum(tf.one_hot(self._actions_ph, self.number_actions) * current_qvalues, axis=1)
         # compute q-values for NEXT states with target network
         # TODO perhaps move target_network in own class
         next_qvalues_target = self.target_network(self._next_obs_ph)
