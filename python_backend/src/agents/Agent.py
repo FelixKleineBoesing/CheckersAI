@@ -15,7 +15,7 @@ class Agent(abc.ABC):
         self.side = side
         self.state_shape = state_shape
         self.action_shape = action_shape
-        self._number_games = 0
+        self._number_turns = 0
 
     def play_turn(self, state_space: np.ndarray, action_space: dict):
         """
