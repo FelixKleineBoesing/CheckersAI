@@ -11,7 +11,8 @@ from python_backend.src.Helpers import ActionSpace
 
 class QLearningAgent(Agent):
 
-    def __init__(self, state_shape: tuple, action_shape: tuple, name: str, side: str = "up", epsilon: float = 0.5):
+    def __init__(self, state_shape: tuple, action_shape: tuple, name: str, side: str = "up", epsilon: float = 0.5,
+                 intervall_turns_train: int = 20, intervall_turns_load = 500):
         """
         Agent which implements Q Learning
         :param state_shape: shape of state
@@ -27,6 +28,8 @@ class QLearningAgent(Agent):
 
         # calculate number actions from actionshape
         self.number_actions = np.product(action_shape)
+        self._intervall_actions_train = intervall_turns_train
+        self._intervall_turns_load = intervall_turns_load
 
         # define network
         with tf.variable_scope(name, reuse=False):
@@ -53,10 +56,10 @@ class QLearningAgent(Agent):
         self.exp_buffer = ReplayBuffer(200)
 
         # init placeholder
-        self._obs_ph = tf.placeholder(tf.float32, shape=(None,) + self.state_shape)
+        self._obs_ph = tf.placeholder(tf.float32, shape=(None,) + state_shape)
         self._actions_ph = tf.placeholder(tf.int32, shape=[None])
         self._rewards_ph = tf.placeholder(tf.float32, shape=[None])
-        self._next_obs_ph = tf.placeholder(tf.float32, shape=(None,) + self.state_shape)
+        self._next_obs_ph = tf.placeholder(tf.float32, shape=(None,) + state_shape)
         self._is_done_ph = tf.placeholder(tf.float32, shape=[None])
         super().__init__(state_shape, action_shape, name, side)
 
@@ -125,7 +128,11 @@ class QLearningAgent(Agent):
 
     def get_feedback(self, state, action, reward, next_state, finished):
         self.exp_buffer.add(state, action, reward, next_state, finished)
-        pass
+        if self._number_turns % self._intervall_actions_train == 0:
+            self.train_network()
+        if self._number_turns % self._intervall_turns_load == 0:
+            self.load_weigths_into_target_network()
+
 
     def _get_symbolic_qvalues(self, state_t):
         """takes agent's observation, returns qvalues. Both are tf Tensors"""
@@ -150,9 +157,9 @@ class QLearningAgent(Agent):
 
         # Define loss function for sgd.
         td_loss = (current_action_qvalues - reference_qvalues) ** 2
-        td_loss = tf.reduce_mean(td_loss)
+        self._td_loss = tf.reduce_mean(td_loss)
 
-        train_step = tf.train.AdamOptimizer(1e-3).minimize(td_loss, var_list=self.weights)
+        self._train_step = tf.train.AdamOptimizer(1e-3).minimize(td_loss, var_list=self.weights)
         self.sess.run(tf.global_variables_initializer())
 
 
@@ -163,12 +170,16 @@ class QLearningAgent(Agent):
             assigns.append(tf.assign(w_target, w_agent, validate_shape=True))
         tf.get_default_session().run(assigns)
 
-    def _sample_batch(self, exp_replay, batch_size):
-        obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch = exp_replay.sample(batch_size)
+    def _sample_batch(self, batch_size):
+        obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch = self.exp_buffer.sample(batch_size)
         return {
             self._obs_ph: obs_batch, self._actions_ph: act_batch, self._rewards_ph: reward_batch,
             self._next_obs_ph: next_obs_batch, self._is_done_ph: is_done_batch
         }
+
+    def train_network(self):
+        _, loss_t = self.sess.run([self._train_step, self._td_loss], self._sample_batch( batch_size=64))
+
 
 
 class ReplayBuffer(object):
