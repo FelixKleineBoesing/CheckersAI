@@ -9,8 +9,9 @@ from python_backend.src.agents.QLearningAgent import QLearningAgent
 def run_random_vs_random_max():
     winners = []
     board_length = 8
-    agent_one = RandomAgentWithMaxValue((board_length, board_length), (board_length, board_length), "One", "up")
-    agent_two = RandomAgent((board_length, board_length), (board_length, board_length), "Two", "down")
+    action_space = (board_length, board_length, board_length, board_length)
+    agent_one = RandomAgentWithMaxValue((board_length, board_length), action_space, "One", "up")
+    agent_two = RandomAgent((board_length, board_length), action_space, "Two", "down")
     for i in range(1000):
         board = Board(board_length=8)
 
@@ -32,7 +33,8 @@ def run_random_vs_random_max():
 def run_random_vs_qlearning():
     winners = []
     board_length = 8
-    agent_one = QLearningAgent((board_length, board_length), (board_length, board_length), "One", "up", 1.0)
+    action_space = (board_length, board_length, board_length, board_length)
+    agent_one = QLearningAgent((board_length, board_length), action_space, "One", "up", 1.0)
     agent_two = RandomAgent((board_length, board_length), (board_length, board_length), "Two", "down")
     for i in range(1000):
         board = Board(board_length=8)

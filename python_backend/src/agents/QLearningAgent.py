@@ -61,6 +61,8 @@ class QLearningAgent(Agent):
         self._rewards_ph = tf.placeholder(tf.float32, shape=[None])
         self._next_obs_ph = tf.placeholder(tf.float32, shape=(None,) + state_shape)
         self._is_done_ph = tf.placeholder(tf.float32, shape=[None])
+
+        self._configure_target_model()
         super().__init__(state_shape, action_shape, name, side)
 
     def decision(self, state_space: np.ndarray, action_space: ActionSpace):
@@ -82,8 +84,7 @@ class QLearningAgent(Agent):
 
     def _get_qvalues(self, state_t):
         """Same as symbolic step except it operates on numpy arrays"""
-        sess = tf.get_default_session()
-        return sess.run(self.qvalues_t, {self.state_t: state_t})
+        return self.sess.run(self.qvalues_t, {self.state_t: state_t})
 
     def _sample_actions(self, qvalues: np.ndarray, action_space: ActionSpace):
         """
@@ -168,7 +169,7 @@ class QLearningAgent(Agent):
         assigns = []
         for w_agent, w_target in zip(self.weights, self.target_weights):
             assigns.append(tf.assign(w_target, w_agent, validate_shape=True))
-        tf.get_default_session().run(assigns)
+        self.sess.run(assigns)
 
     def _sample_batch(self, batch_size):
         obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch = self.exp_buffer.sample(batch_size)
