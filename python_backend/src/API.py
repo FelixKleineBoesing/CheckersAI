@@ -45,7 +45,8 @@ def run_game():
 
     game = Game("Prod", agent_one=agent_one, agent_two=agent_two, board=board, save_runhistory=True)
     game.play(verbose=True)
-    return json.dumps({"status": "ok", "runhistory": game.runhistory, "text": "Player {0} wins!".format(game.winner)})
+    return json.dumps({"status": "ok", "runhistory": game.runhistory, "text": "Player {0} wins!".format(game.winner),
+                       "board_values": {"player_one": "positive", "player_two": "negative"}})
 
 
 serve(app, port=5001, threads=4)

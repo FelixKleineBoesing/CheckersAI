@@ -32,7 +32,9 @@ class RandomAgentWithMaxValue(Agent):
         keys = [key for key in limited_actions.keys()]
         ix = random.sample(range(len(keys)), 1)[0]
         stone_id = keys[ix]
-
         move_id = random.sample(range(len(limited_actions[stone_id])), 1)[0]
 
-        return {"stone_id": stone_id, "move_id": move_id}
+        move = action_space[stone_id][move_id]
+        decision = np.concatenate([move["old_coord"], move["new_coord"]])
+
+        return decision

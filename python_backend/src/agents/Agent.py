@@ -25,9 +25,10 @@ class Agent(abc.ABC):
         :return:
         """
         decision = self.decision(state_space, action_space)
-        move = action_space[decision["stone_id"]][decision["move_id"]]
-        stone_id = decision["stone_id"]
-        return move, stone_id
+        assert isinstance(decision, np.ndarray), "decision return must be a numpy array"
+        assert len(decision) == 4, "decision return must be a np array with length 4"
+
+        return decision
 
     def get_feedback(self, state, action, reward, next_state, finished):
         """
@@ -37,7 +38,7 @@ class Agent(abc.ABC):
         :param reward:
         :param next_state:
         :param finished:
-        :return:
+        :return: No return
         """
         pass
 
@@ -48,6 +49,6 @@ class Agent(abc.ABC):
         return must be a dictionary with the following keys: "stone_id" and "move_index" which indicates
         the stone and move that should be executed
         :param action_space:
-        :return:
+        :return: np.array(X_From, Y_From, X_To, Y_To)
         """
         pass

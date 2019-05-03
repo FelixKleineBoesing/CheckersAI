@@ -4,6 +4,7 @@ from python_backend.src.Board import Board
 from python_backend.src.agents.Agent import Agent
 from python_backend.src.Helpers import Rewards
 from python_backend.src.Helpers import default_rewards
+from python_backend.src.Helpers import ActionSpace
 
 
 class Game:
@@ -61,8 +62,8 @@ class Game:
                 reason = "Player one is blocked and can´t move!"
                 winner = self.agent_one.name
                 break
-            move, stone_id = self.agent_one.play_turn(self.board.board, action_space_p_one)
-            action = np.array([self.board.stones[stone_id].coord, move["new_coord"]])
+            action = self.agent_one.play_turn(self.board.board, action_space_p_one)
+            move, stone_id = self._get_move_and_stone(action, action_space_p_one)
             rpo, rpt = self.board.move_stone(move, stone_id, self.rewards)
             reward_player_one += self.rewards.turn + rpo
             reward_player_two += rpt
@@ -74,7 +75,7 @@ class Game:
             if verbose:
                 print("--------Player One moved-----------")
                 self.board.print_board()
-            finished, reason, winner = self.game_finished(turns_without_removed_stone)
+            finished, reason, winner = self._game_finished(turns_without_removed_stone)
             if finished:
                 if winner == self.agent_one.name:
                     reward_player_one += self.rewards.win
@@ -89,8 +90,8 @@ class Game:
                 reason = "Player two is blocked and can´t move!"
                 winner = self.agent_two.name
                 break
-            move, stone_id = self.agent_two.play_turn(self.board.board, action_space_p_two)
-            action = np.array([self.board.stones[stone_id].coord, move["new_coord"]])
+            action = self.agent_two.play_turn(self.board.board, action_space_p_two)
+            move, stone_id = self._get_move_and_stone(action, action_space_p_two)
             rpt, rpo = self.board.move_stone(move, stone_id, self.rewards)
             reward_player_two += self.rewards.turn + rpt
             reward_player_one += rpo
@@ -104,7 +105,7 @@ class Game:
             number_stones_after = self.board.number_of_stones()
             turns_without_removed_stone = turns_without_removed_stone + 1 if number_stones_after == \
                                                                              number_stones_before else 0
-            finished, reason, winner = self.game_finished(turns_without_removed_stone)
+            finished, reason, winner = self._game_finished(turns_without_removed_stone)
             if finished:
                 if winner == self.agent_two.name:
                     reward_player_two += self.rewards.win
@@ -114,8 +115,15 @@ class Game:
             print("Game finished with the following message: {}".format(reason))
         self.winner = winner
 
+    def _get_move_and_stone(self, action: np.ndarray, action_space: ActionSpace):
+        stone_id = self.board.id_store[action[0], action[1]]
+        for move in action_space[stone_id]:
+            if move["new_coord"][0] == action[2] and move["new_coord"][1] == action[3]:
+                  break
 
-    def game_finished(self, turns_without_removed_stone: int):
+        return move, stone_id
+
+    def _game_finished(self, turns_without_removed_stone: int):
         player_vanished, players = self.board.check_if_player_without_stones()
         if player_vanished:
             return True, "Player {} won!".format(players[0]), players[0]
