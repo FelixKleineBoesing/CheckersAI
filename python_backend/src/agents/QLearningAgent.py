@@ -2,8 +2,9 @@ import numpy as np
 import tensorflow as tf
 import random
 import copy
-from keras.layers import Dense
+from keras.layers import Dense, Flatten
 import keras
+from math import log
 
 from python_backend.src.agents.Agent import Agent
 from python_backend.src.Helpers import ActionSpace
@@ -43,6 +44,7 @@ class QLearningAgent(Agent):
             self.network.add(Dense(4096, activation="relu"))
             #self.network.add(Flatten())
             # outpu shape: X_From x Y_From x X_To x Y_To (board size x action shape)
+            self.network.add(Flatten())
             self.network.add(Dense(self.number_actions, activation="linear"))
 
             # prepare a graph for agent step
@@ -94,36 +96,18 @@ class QLearningAgent(Agent):
         :return: return stone_id and move_id
         """
         epsilon = self.epsilon
-        batch_size, x, y = qvalues.shape
+        batch_size, x = qvalues.shape
+        dim = int(x ** 0.25)
+        qvalues_reshaped = np.reshape(qvalues, (dim, dim, dim, dim))
         if random.random() < epsilon:
             keys = [key for key in action_space.keys()]
             ix = random.sample(range(len(keys)), 1)[0]
             stone_id = keys[ix]
             move_id = random.sample(range(len(action_space[stone_id])), 1)[0]
         else:
-            # TODO order decreasing by a value and choose one of those actions with the highest prob and random stone
-            xx, yy = np.meshgrid(np.arange(qvalues.shape[2]), np.arange(qvalues.shape[1]))
-            table = np.vstack((qvalues.ravel(), xx.ravel(), yy.ravel())).T
-            table = table[table[:,0].argsort()]
-            i = -1
-            found = False
-            while True:
-                for stone in action_space.keys():
-                    j = 0
-                    for action in action_space[stone]:
-                        coord = action["new_coord"]
-                        if coord[0] == int(table[i, 1]) and coord[1] == int(table[i, 2]):
-                            stone_id = stone
-                            move_id = j
-                            found = True
-                            break
-                        else:
-                            j += 1
-                    if found:
-                        break
-                if found:
-                    break
-                i -= 1
+            possible_actions = np.dot(qvalues_reshaped, action_space.space_array)
+            action = np.argmax(possible_actions)
+            #TODO switch action index to sstone_od and mvoe_id
 
         return stone_id, move_id
 
