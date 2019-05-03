@@ -80,9 +80,8 @@ class QLearningAgent(Agent):
         state_space = (state_space.astype('float32') - np.min(state_space)) / (np.max(state_space) - np.min(state_space))
 
         qvalues = self._get_qvalues([state_space])
-        stone_id, move_id = self._sample_actions(qvalues, action_space)
-        # TODO return right stone and move id
-        return {"stone_id": stone_id, "move_id": move_id}
+        decision = self._sample_actions(qvalues, action_space)
+        return decision
 
     def _get_qvalues(self, state_t):
         """Same as symbolic step except it operates on numpy arrays"""
@@ -104,12 +103,13 @@ class QLearningAgent(Agent):
             ix = random.sample(range(len(keys)), 1)[0]
             stone_id = keys[ix]
             move_id = random.sample(range(len(action_space[stone_id])), 1)[0]
+            move = action_space[stone_id][move_id]
+            decision = np.concatenate([move["old_coord"], move["new_coord"]])
         else:
             possible_actions = np.dot(qvalues_reshaped, action_space.space_array)
-            action = np.argmax(possible_actions)
-            #TODO switch action index to sstone_od and mvoe_id
+            decision = np.argmax(possible_actions)
 
-        return stone_id, move_id
+        return decision
 
     def get_feedback(self, state, action, reward, next_state, finished):
         self.exp_buffer.add(state, action, reward, next_state, finished)

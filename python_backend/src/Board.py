@@ -16,6 +16,7 @@ class Board:
         # 0 is no stone placed
         self.board = [[0 for x in range(self.board_length)] for y in range(self.board_length)]
         self.board = np.array(self.board)
+        self.id_store = np.array(self.board)
 
     def init_stones(self, player_one: Agent, player_two: Agent):
         n = 0
@@ -48,6 +49,7 @@ class Board:
         for stone in self.stones:
             if not stone.removed:
                 self.board[stone.coord[0], stone.coord[1]] = stone.value
+                self.id_store[stone.coord[0], stone.coord[1]] = stone.id
 
     def get_all_moves(self, player_name: str):
         tmp = {}
@@ -81,9 +83,10 @@ class Board:
     def print_board(self):
         print(self.board)
 
-    def move_stone(self, move: dict, stone_id: int, rewards: Rewards):
+    def move_stone(self, move: dict,  stone_id: int, rewards: Rewards):
         reward_active = 0
         reward_passive = 0
+
         for coord in move["jumped_stones"]:
             for stone in self.stones:
                 if coord[0] == stone.coord[0] and coord[1] == stone.coord[1]:

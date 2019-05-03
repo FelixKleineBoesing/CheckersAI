@@ -11,25 +11,16 @@ services:
     restart: always
     container_name: checkers_python
     volumes:
-      - ./python_backend/src:/src/
+      - ./python_backend/src:/python_backend/src
     networks:
       - pyjs
     environment:
       - test=123
+    ports:
+      - 127.0.0.1:5001:5001
     command:
-      - /src/API.py
-
-  react_app:
-    build: ./react_app/
-    image: checkers_react_frontend
-    restart: never
-    container_name: checkers_react
-    volumes:
-      - ./react_app:/src/
-    networks:
-      - pyjs
-    environment:
-      - test=123
+      - import time; time.sleep(6000)
+      #- /python_backend/src/API.py
 
 networks:
   pyjs:

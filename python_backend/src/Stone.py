@@ -57,7 +57,7 @@ class Stone:
                     break
                 # if there is no stone, than add this to move list.
                 if value_board == 0:
-                    moves += [{"new_coord": coord, "jumped_stones": [], "jumped_values": 0}]
+                    moves += [{"old_coord": self.coord, "new_coord": coord, "jumped_stones": [], "jumped_values": 0}]
                 # if there is a stone of the enemy
                 if value_board < 0 and self.value > 0 or value_board > 0 and self.value < 0:
                     # check if it can be jumped
@@ -76,7 +76,8 @@ class Stone:
                     if len(moves_tmp) > 0:
                         moves += moves_tmp
                     else:
-                        moves += [{"new_coord": coord_jump, "jumped_stones": jumped_stones, "jumped_values": abs(value_board)}]
+                        moves += [{"old_coord": self.coord, "new_coord": coord_jump, "jumped_stones": jumped_stones,
+                                   "jumped_values": abs(value_board)}]
                 i += 1
                 # break if normal stone, because they can only move one field
                 if abs(self.value) == 1:
@@ -126,7 +127,8 @@ class Stone:
                     tmp_moves += self.jump_chain(directions, board, coord_jump, board_size, tmp_jumped_values,
                                              jumped_stones_tmp)
                     if len(tmp_moves) == 0:
-                        moves += [{"new_coord": coord, "jumped_stones": jumped_stones_tmp, "jumped_values": abs(tmp_jumped_values)}]
+                        moves += [{"old_coord": self.coord, "new_coord": coord, "jumped_stones": jumped_stones_tmp,
+                                   "jumped_values": abs(tmp_jumped_values)}]
                     else:
                         moves += tmp_moves
                 i += 1
