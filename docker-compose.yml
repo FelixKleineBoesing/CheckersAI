@@ -16,6 +16,8 @@ services:
       - pyjs
     environment:
       - test=123
+    command:
+      - /src/API.py
 
   react_app:
     build: ./react_app/
@@ -28,5 +30,6 @@ services:
       - pyjs
     environment:
       - test=123
+
 networks:
   pyjs:
