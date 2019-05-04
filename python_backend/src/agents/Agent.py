@@ -27,7 +27,7 @@ class Agent(abc.ABC):
         decision = self.decision(state_space, action_space)
         assert isinstance(decision, np.ndarray), "decision return must be a numpy array"
         assert len(decision) == 4, "decision return must be a np array with length 4"
-
+        self._number_turns += 1
         return decision
 
     def get_feedback(self, state, action, reward, next_state, finished):

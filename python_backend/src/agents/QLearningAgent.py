@@ -163,7 +163,7 @@ class QLearningAgent(Agent):
         }
 
     def train_network(self):
-        _, loss_t = self.sess.run([self._train_step, self._td_loss], self._sample_batch( batch_size=64))
+        _, loss_t = self.sess.run([self._train_step, self._td_loss], self._sample_batch(batch_size=64))
 
 
 
