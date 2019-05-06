@@ -80,7 +80,7 @@ class Game:
                 if winner == self.agent_one.name:
                     reward_player_one += self.rewards.win
                     reward_player_two += self.rewards.loss
-            self.agent_one.get_feedback(state, action, next_state, reward_player_one, finished)
+            self.agent_one.get_feedback(state, action, reward_player_one, next_state, finished)
             if finished:
                 break
 
@@ -110,7 +110,7 @@ class Game:
                 if winner == self.agent_two.name:
                     reward_player_two += self.rewards.win
                     reward_player_one += self.rewards.loss
-            self.agent_two.get_feedback(state, action, next_state, reward_player_one, finished)
+            self.agent_two.get_feedback(state, action, reward_player_one, next_state, finished)
         if verbose:
             print("Game finished with the following message: {}".format(reason))
         self.winner = winner

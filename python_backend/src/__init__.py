@@ -34,7 +34,7 @@ def run_random_vs_qlearning():
     winners = []
     board_length = 8
     action_space = (board_length, board_length, board_length, board_length)
-    agent_one = QLearningAgent((board_length, board_length), action_space, "One", "up", 1.0)
+    agent_one = QLearningAgent((board_length, board_length), action_space, "One", "up", 1.0, 100, 1000)
     agent_two = RandomAgent((board_length, board_length), (board_length, board_length), "Two", "down")
     for i in range(1000):
         board = Board(board_length=8)
@@ -48,11 +48,13 @@ def run_random_vs_qlearning():
                 victories_player_one += 1
             if winner == "Two":
                 victories_player_two += 1
+        agent_one.epsilon *= 0.99
+
 
     print(victories_player_one)
     print(victories_player_two)
 
 
 if __name__=="__main__":
-    run_random_vs_random_max()
+    #run_random_vs_random_max()
     run_random_vs_qlearning()

@@ -47,7 +47,7 @@ class ActionSpace:
         :param board_length length of board sides
         """
         self.space_dict = {}
-        self.space_array = np.zeros([board_length] * 4)
+        self.space_array = np.full([board_length] * 4, np.nan)
 
     def update_dict(self, key, value):
         # update dict first
