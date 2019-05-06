@@ -106,13 +106,15 @@ class QLearningAgent(Agent):
             move = action_space[stone_id][move_id]
             decision = np.concatenate([move["old_coord"], move["new_coord"]])
         else:
-            possible_actions = np.dot(qvalues_reshaped, action_space.space_array)
-            decision = np.argmax(possible_actions)
+            possible_actions = qvalues_reshaped * action_space.space_array
+            flattened_index = np.argmax(possible_actions)
+            decision = np.array(np.unravel_index(flattened_index, self.action_shape))
 
         return decision
 
     def get_feedback(self, state, action, reward, next_state, finished):
-        self.exp_buffer.add(state, action, reward, next_state, finished)
+        action_number = np.unravel_index(np.ravel_multi_index(action, self.action_shape), (4096,))[0]
+        self.exp_buffer.add(state, action_number, reward, next_state, finished)
         if self._number_turns % self._intervall_actions_train == 0:
             self.train_network()
         if self._number_turns % self._intervall_turns_load == 0:
