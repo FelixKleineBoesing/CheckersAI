@@ -60,7 +60,7 @@ class Game:
             # if player is blocked and can´t do any moves, than he has lost the game
             if len(action_space_p_one) == 0:
                 reason = "Player one is blocked and can´t move!"
-                winner = self.agent_one.name
+                winner = self.agent_two.name
                 break
             action = self.agent_one.play_turn(self.board.board, action_space_p_one)
             move, stone_id = self._get_move_and_stone(action, action_space_p_one)
@@ -88,7 +88,7 @@ class Game:
             # if player is blocked and can´t do any moves, than he has lost the game
             if len(action_space_p_two) == 0:
                 reason = "Player two is blocked and can´t move!"
-                winner = self.agent_two.name
+                winner = self.agent_one.name
                 break
             action = self.agent_two.play_turn(self.board.board, action_space_p_two)
             move, stone_id = self._get_move_and_stone(action, action_space_p_two)
