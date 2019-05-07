@@ -16,7 +16,7 @@ def run_random_vs_random_max():
         board = Board(board_length=8)
 
         game = Game("Test", agent_one=agent_one, agent_two=agent_two, board=board)
-        game.play(verbose=False)
+        game.play(verbose=True)
         winners += [game.winner]
         victories_player_two = 0
         victories_player_one = 0
@@ -40,6 +40,8 @@ def run_random_vs_qlearning():
         board = Board(board_length=8)
         game = Game("Test", agent_one=agent_one, agent_two=agent_two, board=board)
         game.play(verbose=True)
+        if i % 50 == 0:
+            print("{} Iterations".format(i))
         winners += [game.winner]
         victories_player_two = 0
         victories_player_one = 0
@@ -56,5 +58,5 @@ def run_random_vs_qlearning():
 
 
 if __name__=="__main__":
-    #run_random_vs_random_max()
+    run_random_vs_random_max()
     run_random_vs_qlearning()

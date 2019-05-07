@@ -19,8 +19,8 @@ class Board:
         self.id_store = np.array(self.board)
 
     def init_stones(self, player_one: Agent, player_two: Agent):
-        n = 0
-        stones = []
+        n = 1
+        stones = {}
         for i in range(self.board_length):
             if i <= 2:
                 player = player_one
@@ -33,12 +33,12 @@ class Board:
                     if i % 2 == 0:
                         if j % 2 == 0:
                             stone = Stone(n, player, np.array((i, j)), "normal", value, self.board_length)
-                            stones += [stone]
+                            stones[n] = stone
                             n += 1
                     else:
                         if j % 2 != 0:
                             stone = Stone(n, player, np.array((i, j)), "normal", value, self.board_length)
-                            stones += [stone]
+                            stones[n] = stone
                             n += 1
         self.stones = stones
 
@@ -46,7 +46,9 @@ class Board:
         for i in range(self.board.shape[0]):
             for j in range(self.board.shape[1]):
                 self.board[i, j] = 0
-        for stone in self.stones:
+                self.id_store[i, j] = 0
+        for stone_id in self.stones:
+            stone = self.stones[stone_id]
             if not stone.removed:
                 self.board[stone.coord[0], stone.coord[1]] = stone.value
                 self.id_store[stone.coord[0], stone.coord[1]] = stone.id
@@ -56,14 +58,14 @@ class Board:
 
         # because a player must jump an enemy stone we proof here if there is any move where a stone can be jumped
         jumping_possible = False
-        for stone in self.stones:
+        for stone_id in self.stones:
+            stone = self.stones[stone_id]
             if stone.player.name == player_name and stone.removed == False:
                 spec_act_space = stone.get_possible_moves(self.board_length, self.board)
                 for move in spec_act_space:
                     if move["jumped_values"] != 0:
                         jumping_possible = True
                 tmp[stone.id] = spec_act_space
-        arr = np.zeros([self.board_length] * 4)
         action_space = ActionSpace(self.board_length)
         for id in tmp.keys():
             if len(tmp[id]) == 0:
@@ -88,13 +90,15 @@ class Board:
         reward_passive = 0
 
         for coord in move["jumped_stones"]:
-            for stone in self.stones:
+            for stone_id in self.stones:
+                stone = self.stones[stone_id]
                 if coord[0] == stone.coord[0] and coord[1] == stone.coord[1]:
                     stone.removed = True
                     reward_active += rewards.normal_stone_taken if abs(stone.value) == 1 else rewards.queen_stone_taken
                     reward_passive += rewards.normal_stone_loss if abs(stone.value) == 1 else rewards.queen_stone_loss
                     continue
-        for stone in self.stones:
+        for stone_id in self.stones:
+            stone = self.stones[stone_id]
             if stone.id == stone_id:
                 stone.coord = move["new_coord"]
                 break
@@ -102,14 +106,15 @@ class Board:
 
     def number_of_stones(self):
         number_stones = 0
-        for stone in self.stones:
-            number_stones += stone.removed
+        for stone_id in self.stones:
+            number_stones += self.stones[stone_id].removed
         return number_stones
 
     def check_if_player_without_stones(self):
         # returns true if one player has no stones.
         players = []
-        for stone in self.stones:
+        for stone_id in self.stones:
+            stone = self.stones[stone_id]
             if not stone.removed:
                 if stone.player.name in players:
                     continue

@@ -1,5 +1,6 @@
 from typing import Union
 import numpy as np
+import pdb
 
 
 class Rewards:
@@ -69,4 +70,9 @@ class ActionSpace:
         return len(self.space_dict)
 
     def __getitem__(self, item):
-        return self.space_dict[item]
+        try:
+            return self.space_dict[item]
+        except KeyError:
+            pdb.set_trace()
+
+
