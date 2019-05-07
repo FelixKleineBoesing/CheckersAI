@@ -127,7 +127,7 @@ class Game:
         player_vanished, players = self.board.check_if_player_without_stones()
         if player_vanished:
             return True, "Player {} won!".format(players[0]), players[0]
-        elif turns_without_removed_stone >= 20:
+        elif turns_without_removed_stone >= 40:
             return True, "Draw!", None
         else:
             return False, "", None

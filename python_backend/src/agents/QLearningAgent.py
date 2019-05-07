@@ -107,7 +107,7 @@ class QLearningAgent(Agent):
             decision = np.concatenate([move["old_coord"], move["new_coord"]])
         else:
             possible_actions = qvalues_reshaped * action_space.space_array
-            flattened_index = np.argmax(possible_actions)
+            flattened_index = np.nanargmax(possible_actions)
             decision = np.array(np.unravel_index(flattened_index, self.action_shape))
 
         return decision
