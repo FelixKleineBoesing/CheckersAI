@@ -5,6 +5,7 @@ import copy
 from keras.layers import Dense, Flatten
 import keras
 from math import log
+import os
 
 from python_backend.src.agents.Agent import Agent
 from python_backend.src.Helpers import ActionSpace
@@ -65,6 +66,10 @@ class QLearningAgent(Agent):
         self._is_done_ph = tf.placeholder(tf.float32, shape=[None])
 
         self._configure_target_model()
+        self.saver = tf.train.Saver()
+        if os.path.isfile("model.ckpt"):
+            self.saver.restore(self.sess, "model.ckpt")
+
         super().__init__(state_shape, action_shape, name, side)
 
     def decision(self, state_space: np.ndarray, action_space: ActionSpace):
@@ -156,6 +161,7 @@ class QLearningAgent(Agent):
         for w_agent, w_target in zip(self.weights, self.target_weights):
             assigns.append(tf.assign(w_target, w_agent, validate_shape=True))
         self.sess.run(assigns)
+        self.saver.save(self.sess, "model.ckpt")
 
     def _sample_batch(self, batch_size):
         obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch = self.exp_buffer.sample(batch_size)
