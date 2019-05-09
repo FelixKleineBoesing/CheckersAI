@@ -1,3 +1,5 @@
+import pandas as pd
+
 from python_backend.src.Game import Game
 from python_backend.src.Board import Board
 from python_backend.src.agents.Agent import Agent
@@ -16,7 +18,7 @@ def run_random_vs_random_max():
         board = Board(board_length=8)
 
         game = Game("Test", agent_one=agent_one, agent_two=agent_two, board=board)
-        game.play(verbose=True)
+        game.play(verbose=False)
         winners += [game.winner]
         victories_player_two = 0
         victories_player_one = 0
@@ -34,12 +36,13 @@ def run_random_vs_qlearning():
     winners = []
     board_length = 8
     action_space = (board_length, board_length, board_length, board_length)
+    rewards = []
     agent_one = QLearningAgent((board_length, board_length), action_space, "One", "up", 1.0, 100, 1000)
     agent_two = RandomAgent((board_length, board_length), (board_length, board_length), "Two", "down")
-    for i in range(1000):
+    for i in range(10**4):
         board = Board(board_length=8)
         game = Game("Test", agent_one=agent_one, agent_two=agent_two, board=board)
-        game.play(verbose=True)
+        game.play(verbose=False)
         if i % 50 == 0:
             print("{} Iterations".format(i))
         winners += [game.winner]
@@ -51,12 +54,13 @@ def run_random_vs_qlearning():
             if winner == "Two":
                 victories_player_two += 1
         agent_one.epsilon *= 0.99
-
-
+        rewards += [game.cum_rewards_agent_one]
+    df = pd.DataFrame({"rewards": rewards})
+    df.to_csv("rewards.txt")
     print(victories_player_one)
     print(victories_player_two)
 
 
 if __name__=="__main__":
-    run_random_vs_random_max()
+    #run_random_vs_random_max()
     run_random_vs_qlearning()

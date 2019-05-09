@@ -41,13 +41,17 @@ class Game:
 
         # stats
         self.turns = 0
+        self.cum_rewards_agent_one = None
+        self.cum_rewards_agent_two = None
 
     def get_action_space(self, player_name: str):
         return self.board.get_all_moves(player_name)
 
-    def play(self, verbose:bool = True, return_runhistory: bool = False):
+    def play(self, verbose:bool = True):
         finished = False
         turns_without_removed_stone = 0
+        cum_rewards_agent_one = 0
+        cum_rewards_agent_two = 0
 
         while not finished:
             reward_player_one, reward_player_two = 0, 0
@@ -84,6 +88,8 @@ class Game:
             if finished:
                 break
 
+            cum_rewards_agent_one += reward_player_one
+            cum_rewards_agent_two += rpt
             action_space_p_two = self.get_action_space(self.agent_two.name)
             # if player is blocked and can´t do any moves, than he has lost the game
             if len(action_space_p_two) == 0:
@@ -111,9 +117,14 @@ class Game:
                     reward_player_two += self.rewards.win
                     reward_player_one += self.rewards.loss
             self.agent_two.get_feedback(state, action, reward_player_one, next_state, finished)
+            cum_rewards_agent_one += reward_player_one
+            cum_rewards_agent_two += reward_player_two
+
         if verbose:
             print("Game finished with the following message: {}".format(reason))
         self.winner = winner
+        self.cum_rewards_agent_one = cum_rewards_agent_one
+        self.cum_rewards_agent_two = cum_rewards_agent_one
 
     def _get_move_and_stone(self, action: np.ndarray, action_space: ActionSpace):
         stone_id = self.board.id_store[action[0], action[1]]
