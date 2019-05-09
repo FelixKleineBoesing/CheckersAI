@@ -21,7 +21,8 @@ class Rewards:
         :param queen_stone_taken: reward for taking a queen stone
         :param turn: reward for playing a turn
         """
-        assert all(isinstance(arg, float) or isinstance(arg, int) for arg in [win, loss, queen_stone_loss, queen_stone_taken, normal_stone_loss,
+        assert all(isinstance(arg, float) or isinstance(arg, int) for arg in [win, loss, queen_stone_loss,
+                                                                              queen_stone_taken, normal_stone_loss,
                                                       normal_stone_taken])
 
         self.win = win
@@ -33,7 +34,7 @@ class Rewards:
         self.turn = turn
 
 
-default_rewards = Rewards(100, -100, 0, 0, 10, 10, 0)
+default_rewards = Rewards(500, -500, 0, 0, 10, 10, 0)
 
 
 class ActionSpace:
