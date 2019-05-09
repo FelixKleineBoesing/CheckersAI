@@ -90,18 +90,15 @@ class Board:
         reward_passive = 0
 
         for coord in move["jumped_stones"]:
-            for stone_id in self.stones:
-                stone = self.stones[stone_id]
+            for s_id in self.stones:
+                stone = self.stones[s_id]
                 if coord[0] == stone.coord[0] and coord[1] == stone.coord[1]:
                     stone.removed = True
                     reward_active += rewards.normal_stone_taken if abs(stone.value) == 1 else rewards.queen_stone_taken
                     reward_passive += rewards.normal_stone_loss if abs(stone.value) == 1 else rewards.queen_stone_loss
                     continue
-        for stone_id in self.stones:
-            stone = self.stones[stone_id]
-            if stone.id == stone_id:
-                stone.coord = move["new_coord"]
-                break
+        self.stones[stone_id].coord = move["new_coord"]
+
         return reward_active, reward_passive
 
     def number_of_stones(self):
