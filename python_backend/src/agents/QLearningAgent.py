@@ -6,11 +6,13 @@ from keras.layers import Dense, Flatten
 import keras
 from math import log
 import os
+import matplotlib.pyplot as plt
+from pandas import DataFrame
 
 from python_backend.src.agents.Agent import Agent
 from python_backend.src.Helpers import ActionSpace
 
-
+plt.interactive(True)
 class QLearningAgent(Agent):
 
     def __init__(self, state_shape: tuple, action_shape: tuple, name: str, side: str = "up", epsilon: float = 0.5,
@@ -26,6 +28,7 @@ class QLearningAgent(Agent):
 
         # tensorflow related stuff
         tf.reset_default_graph()
+        self.name = name
         self.sess = tf.InteractiveSession()
 
         # calculate number actions from actionshape
@@ -33,30 +36,17 @@ class QLearningAgent(Agent):
         self._intervall_actions_train = intervall_turns_train
         self._intervall_turns_load = intervall_turns_load
 
-        # define network
-        with tf.variable_scope(name, reuse=False):
-            self.network = keras.models.Sequential()
+        self.target_network = self._configure_network(state_shape)
+        self.network = self._configure_network(state_shape)
 
-            # let's create a network for approximate q-learning following guidelines above
-            # input shape: X x Y (board size)
-            self.network.add(Dense(512, activation="relu", input_shape=state_shape))
-            self.network.add(Dense(1024, activation="relu"))
-            self.network.add(Dense(2048, activation="relu"))
-            self.network.add(Dense(4096, activation="relu"))
-            #self.network.add(Flatten())
-            # outpu shape: X_From x Y_From x X_To x Y_To (board size x action shape)
-            self.network.add(Flatten())
-            self.network.add(Dense(self.number_actions, activation="linear"))
-
-            # prepare a graph for agent step
-            self.state_t = tf.placeholder('float32', [None, ] + list(state_shape))
-            self.qvalues_t = self._get_symbolic_qvalues(self.state_t)
+        # prepare a graph for agent step
+        self.state_t = tf.placeholder('float32', [None, ] + list(state_shape))
+        self.qvalues_t = self._get_symbolic_qvalues(self.state_t)
 
         self.weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=name)
         self.epsilon = epsilon
-        self.target_network = self.network
         self.target_weights = self.weights
-        self.exp_buffer = ReplayBuffer(200)
+        self.exp_buffer = ReplayBuffer(10000)
 
         # init placeholder
         self._obs_ph = tf.placeholder(tf.float32, shape=(None,) + state_shape)
@@ -65,10 +55,13 @@ class QLearningAgent(Agent):
         self._next_obs_ph = tf.placeholder(tf.float32, shape=(None,) + state_shape)
         self._is_done_ph = tf.placeholder(tf.float32, shape=[None])
 
-        self._configure_target_model()
         self.saver = tf.train.Saver()
         if os.path.isfile("model.ckpt"):
             self.saver.restore(self.sess, "model.ckpt")
+
+        # copy weight to target weights
+        self._configure_target_model()
+        self.load_weigths_into_target_network()
 
         super().__init__(state_shape, action_shape, name, side)
 
@@ -120,9 +113,9 @@ class QLearningAgent(Agent):
     def get_feedback(self, state, action, reward, next_state, finished):
         action_number = np.unravel_index(np.ravel_multi_index(action, self.action_shape), (4096,))[0]
         self.exp_buffer.add(state, action_number, reward, next_state, finished)
-        if self._number_turns % self._intervall_actions_train == 0:
+        if self._number_turns % self._intervall_actions_train == 0 and self._number_turns > 1:
             self.train_network()
-        if self._number_turns % self._intervall_turns_load == 0:
+        if self._number_turns % self._intervall_turns_load == 0 and self._number_turns > 1:
             self.load_weigths_into_target_network()
 
 
@@ -150,10 +143,10 @@ class QLearningAgent(Agent):
         # Define loss function for sgd.
         td_loss = (current_action_qvalues - reference_qvalues) ** 2
         self._td_loss = tf.reduce_mean(td_loss)
-
+        self.td_loss_history = []
+        self._moving_average = []
         self._train_step = tf.train.AdamOptimizer(1e-3).minimize(td_loss, var_list=self.weights)
         self.sess.run(tf.global_variables_initializer())
-
 
     def load_weigths_into_target_network(self):
         """ assign target_network.weights variables to their respective agent.weights values. """
@@ -172,7 +165,26 @@ class QLearningAgent(Agent):
 
     def train_network(self):
         _, loss_t = self.sess.run([self._train_step, self._td_loss], self._sample_batch(batch_size=64))
+        print(loss_t)
+        self.td_loss_history.append(loss_t)
+        self._moving_average.append(np.mean([self.td_loss_history[max([0,len(self.td_loss_history) - 100]):]]))
+        #plt.plot(self._moving_average)
+        #plt.show()
 
+    def _configure_network(self, state_shape: tuple):
+        # define network
+        with tf.variable_scope(self.name, reuse=False):
+            network = keras.models.Sequential()
+
+            # let's create a network for approximate q-learning following guidelines above
+            # input shape: X x Y (board size)
+            network.add(Dense(512, activation="relu", input_shape=state_shape))
+            network.add(Dense(1024, activation="relu"))
+            network.add(Dense(2048, activation="relu"))
+            network.add(Dense(4096, activation="relu"))
+            network.add(Flatten())
+            network.add(Dense(self.number_actions, activation="linear"))
+        return network
 
 
 class ReplayBuffer(object):

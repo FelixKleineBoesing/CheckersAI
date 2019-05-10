@@ -39,7 +39,7 @@ def run_random_vs_qlearning():
     rewards = []
     agent_one = QLearningAgent((board_length, board_length), action_space, "One", "up", 1.0, 100, 1000)
     agent_two = RandomAgent((board_length, board_length), (board_length, board_length), "Two", "down")
-    for i in range(10**4):
+    for i in range(30000):
         board = Board(board_length=8)
         game = Game("Test", agent_one=agent_one, agent_two=agent_two, board=board)
         game.play(verbose=False)
@@ -55,8 +55,9 @@ def run_random_vs_qlearning():
                 victories_player_two += 1
         agent_one.epsilon *= 0.99
         rewards += [game.cum_rewards_agent_one]
-    df = pd.DataFrame({"rewards": rewards})
-    df.to_csv("rewards.txt")
+        if i % 1000 == 0 and i > 0:
+            df = pd.DataFrame({"rewards": rewards})
+            df.to_csv("rewards.txt")
     print(victories_player_one)
     print(victories_player_two)
 
