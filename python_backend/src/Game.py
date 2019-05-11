@@ -85,11 +85,13 @@ class Game:
                     reward_player_one += self.rewards.win
                     reward_player_two += self.rewards.loss
             self.agent_one.get_feedback(state, action, reward_player_one, next_state, finished)
+            self.agent_two.get_feedback(state, action, reward_player_two, next_state, finished)
             if finished:
                 break
 
             cum_rewards_agent_one += reward_player_one
-            cum_rewards_agent_two += rpt
+            cum_rewards_agent_two += reward_player_two
+            reward_player_one, reward_player_two = 0, 0
             action_space_p_two = self.get_action_space(self.agent_two.name)
             # if player is blocked and can´t do any moves, than he has lost the game
             if len(action_space_p_two) == 0:
@@ -116,7 +118,8 @@ class Game:
                 if winner == self.agent_two.name:
                     reward_player_two += self.rewards.win
                     reward_player_one += self.rewards.loss
-            self.agent_two.get_feedback(state, action, reward_player_one, next_state, finished)
+            self.agent_two.get_feedback(state, action, reward_player_two, next_state, finished)
+            self.agent_one.get_feedback(state, action, reward_player_one, next_state, finished)
             cum_rewards_agent_one += reward_player_one
             cum_rewards_agent_two += reward_player_two
 
