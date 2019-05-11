@@ -10,6 +10,5 @@ setup(name='Checkers',
       author_email='felix.boesing@t-online.de',
       license='FKB',
       packages=find_packages(),
-      install_requires=['numpy', 'pandas', 'xgboost', 'recordclass', 'catboost', 'isoweek', 'statsmodels', 'lightgbm',
-                        'sklearn', 'aenum', 'redis', 'flask'],
+      install_requires=['numpy', "pandas", 'tensorflow', 'keras'],
       zip_safe=False)
