@@ -53,8 +53,8 @@ class QLearningAgent(Agent):
         self._is_done_ph = tf.placeholder(tf.float32, shape=[None])
 
         self.saver = tf.train.Saver()
-        if os.path.isfile("model.ckpt"):
-            self.saver.restore(self.sess, "model.ckpt")
+        if os.path.isfile("../data/modeldata/model.ckpt"):
+            self.saver.restore(self.sess, "../data/modeldata/model.ckpt")
 
         # copy weight to target weights
         self._configure_target_model()
@@ -151,7 +151,7 @@ class QLearningAgent(Agent):
         for w_agent, w_target in zip(self.weights, self.target_weights):
             assigns.append(tf.assign(w_target, w_agent, validate_shape=True))
         self.sess.run(assigns)
-        self.saver.save(self.sess, "model.ckpt")
+        self.saver.save(self.sess, "../data/modeldata/model.ckpt")
 
     def _sample_batch(self, batch_size):
         obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch = self.exp_buffer.sample(batch_size)
