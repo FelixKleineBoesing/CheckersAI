@@ -5,9 +5,9 @@ from keras.layers import Dense, Flatten
 import keras
 import os
 
-from python_backend.src.agents.Agent import Agent
-from python_backend.src.Helpers import ActionSpace
-from python_backend.src.ReplayBuffer import ReplayBuffer
+from checkers.src.agents.Agent import Agent
+from checkers.src.Helpers import ActionSpace
+from checkers.src.ReplayBuffer import ReplayBuffer
 
 
 class QLearningAgent(Agent):

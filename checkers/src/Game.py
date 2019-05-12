@@ -1,10 +1,10 @@
 import numpy as np
 
-from python_backend.src.Board import Board
-from python_backend.src.agents.Agent import Agent
-from python_backend.src.Helpers import Rewards
-from python_backend.src.Helpers import default_rewards
-from python_backend.src.Helpers import ActionSpace
+from checkers.src.Board import Board
+from checkers.src.agents.Agent import Agent
+from checkers.src.Helpers import Rewards
+from checkers.src.Helpers import default_rewards
+from checkers.src.Helpers import ActionSpace
 
 
 class Game:

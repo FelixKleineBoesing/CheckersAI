@@ -1,10 +1,10 @@
-from python_backend.src.Helpers import default_rewards
-from python_backend.src.Board import Board
-from python_backend.src.Game import Game
-from python_backend.src.Stone import Stone
-from python_backend.src.agents.RandomAgentWithMaxValue import RandomAgentWithMaxValue
-from python_backend.src.agents.RandomAgent import RandomAgent
-from python_backend.src.agents.QLearningAgent import QLearningAgent
+from checkers.src.Helpers import default_rewards
+from checkers.src.Board import Board
+from checkers.src.Game import Game
+from checkers.src.Stone import Stone
+from checkers.src.agents.RandomAgentWithMaxValue import RandomAgentWithMaxValue
+from checkers.src.agents.RandomAgent import RandomAgent
+from checkers.src.agents.QLearningAgent import QLearningAgent
 
 from flask import Flask
 from flask import request

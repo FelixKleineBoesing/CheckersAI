@@ -1,5 +1,6 @@
 import abc
 import numpy as np
+from checkers.src.Helpers import ActionSpace
 
 
 class Agent(abc.ABC):
@@ -17,7 +18,7 @@ class Agent(abc.ABC):
         self.action_shape = action_shape
         self._number_turns = 0
 
-    def play_turn(self, state_space: np.ndarray, action_space: dict):
+    def play_turn(self, state_space: np.ndarray, action_space: ActionSpace):
         """
         get all possible actions and decide which action to take
         :param action_space: np array describing the board
@@ -43,7 +44,7 @@ class Agent(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def decision(self, state_space: np.ndarray, action_space: dict):
+    def decision(self, state_space: np.ndarray, action_space: ActionSpace):
         """
         this function must implement a decision based in the action_space and other delivered arguments
         return must be a dictionary with the following keys: "stone_id" and "move_index" which indicates

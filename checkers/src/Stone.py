@@ -1,7 +1,7 @@
 import numpy as np
 import copy
 
-from python_backend.src.agents.Agent import Agent
+from checkers.src.agents.Agent import Agent
 
 
 class Stone:

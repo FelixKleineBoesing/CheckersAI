@@ -6,12 +6,12 @@ version: '2'
 services:
 
   pybackend:
-    build: ./python_backend/
+    build: ./checkers/
     image: checkers_python_backend
     restart: always
     container_name: checkers_python
     volumes:
-      - ./python_backend/src:/python_backend/src
+      - ./checkers/src:/checkers/src
     networks:
       - pyjs
     environment:
@@ -19,8 +19,7 @@ services:
     ports:
       - 127.0.0.1:5001:5001
     command:
-      - import time; time.sleep(6000)
-      #- /python_backend/src/API.py
+      - /python_backend/src/API.py
 
 networks:
   pyjs:

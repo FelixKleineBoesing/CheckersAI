@@ -1,9 +1,9 @@
 import numpy as np
 
-from python_backend.src.Stone import Stone
-from python_backend.src.agents.Agent import Agent
-from python_backend.src.Helpers import Rewards
-from python_backend.src.Helpers import ActionSpace
+from checkers.src.Stone import Stone
+from checkers.src.agents.Agent import Agent
+from checkers.src.Helpers import Rewards
+from checkers.src.Helpers import ActionSpace
 
 
 class Board:

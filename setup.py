@@ -2,13 +2,13 @@ from setuptools import setup
 from setuptools import find_packages
 
 
-setup(name='Checkers',
+setup(name='checkers',
       version='0.1',
       description='Forecasting functions',
       url='',
       author='Felix Kleine Bösing',
       author_email='felix.boesing@t-online.de',
-      license='FKB',
-      packages=find_packages(),
+      license='MIT',
+      packages=["checkers"],
       install_requires=['numpy', "pandas", 'tensorflow', 'keras'],
       zip_safe=False)

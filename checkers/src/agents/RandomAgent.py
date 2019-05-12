@@ -1,8 +1,8 @@
 import random
 import numpy as np
 
-from python_backend.src.agents.Agent import Agent
-from python_backend.src.Helpers import ActionSpace
+from checkers.src.agents.Agent import Agent
+from checkers.src.Helpers import ActionSpace
 
 
 class RandomAgent(Agent):
