@@ -34,7 +34,7 @@ class Rewards:
         self.turn = turn
 
 
-default_rewards = Rewards(500, -500, 0, 0, 10, 10, 0)
+default_rewards = Rewards(5000, -5000, 0, 0, 10, 10, 0)
 
 
 class ActionSpace:

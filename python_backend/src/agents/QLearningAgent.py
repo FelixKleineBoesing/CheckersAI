@@ -43,7 +43,7 @@ class QLearningAgent(Agent):
         self.weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=name)
         self.epsilon = epsilon
         self.target_weights = self.weights
-        self.exp_buffer = ReplayBuffer(10000)
+        self.exp_buffer = ReplayBuffer(100000)
 
         # init placeholder
         self._obs_ph = tf.placeholder(tf.float32, shape=(None,) + state_shape)
@@ -127,8 +127,8 @@ class QLearningAgent(Agent):
         gamma = 0.99
         current_qvalues = self._get_symbolic_qvalues(self._obs_ph)
         current_action_qvalues = tf.reduce_sum(tf.one_hot(self._actions_ph, self.number_actions) * current_qvalues, axis=1)
+
         # compute q-values for NEXT states with target network
-        # TODO perhaps move target_network in own class
         next_qvalues_target = self.target_network(self._next_obs_ph)
 
         # compute state values by taking max over next_qvalues_target for all actions
@@ -142,7 +142,7 @@ class QLearningAgent(Agent):
         self._td_loss = tf.reduce_mean(td_loss)
         self.td_loss_history = []
         self._moving_average = []
-        self._train_step = tf.train.AdamOptimizer(1e-3).minimize(td_loss, var_list=self.weights)
+        self._train_step = tf.train.AdamOptimizer(1e-3).minimize(self._td_loss, var_list=self.weights)
         self.sess.run(tf.global_variables_initializer())
 
     def load_weigths_into_target_network(self):
@@ -161,12 +161,9 @@ class QLearningAgent(Agent):
         }
 
     def train_network(self):
-        _, loss_t = self.sess.run([self._train_step, self._td_loss], self._sample_batch(batch_size=64))
-        print(loss_t)
+        _, loss_t = self.sess.run([self._train_step, self._td_loss], self._sample_batch(batch_size=128))
         self.td_loss_history.append(loss_t)
         self._moving_average.append(np.mean([self.td_loss_history[max([0,len(self.td_loss_history) - 100]):]]))
-        #plt.plot(self._moving_average)
-        #plt.show()
 
     def _configure_network(self, state_shape: tuple):
         # define network
@@ -174,8 +171,8 @@ class QLearningAgent(Agent):
             network = keras.models.Sequential()
             # TODO try agent performance with rnn layers (perhaps LSTM since we have sequential dependencies in the data)
             network.add(Dense(512, activation="relu", input_shape=state_shape))
-            network.add(Dense(1024, activation="relu"))
-            network.add(Dense(2048, activation="relu"))
+            #network.add(Dense(1024, activation="relu"))
+            #network.add(Dense(2048, activation="relu"))
             network.add(Dense(4096, activation="relu"))
             network.add(Flatten())
             network.add(Dense(self.number_actions, activation="linear"))

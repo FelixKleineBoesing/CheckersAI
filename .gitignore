@@ -1,3 +1,4 @@
 *.idea*
 *__pycache__*
 rewards.txt
+python_backend/data

@@ -37,7 +37,7 @@ def run_random_vs_qlearning():
     board_length = 8
     action_space = (board_length, board_length, board_length, board_length)
     rewards = []
-    agent_one = QLearningAgent((board_length, board_length), action_space, "One", "up", 1.0, 300, 1000)
+    agent_one = QLearningAgent((board_length, board_length), action_space, "One", "up", 1.0, 10, 1000)
     agent_two = RandomAgent((board_length, board_length), (board_length, board_length), "Two", "down")
     for i in range(30000):
         board = Board(board_length=8)
@@ -53,7 +53,7 @@ def run_random_vs_qlearning():
                 victories_player_one += 1
             if winner == "Two":
                 victories_player_two += 1
-        agent_one.epsilon *= 0.99
+        agent_one.epsilon *= 0.9999
         rewards += [game.cum_rewards_agent_one]
         if i % 1000 == 0 and i > 0:
             df = pd.DataFrame({"rewards": rewards})
