@@ -84,6 +84,9 @@ class Game:
                 if winner == self.agent_one.name:
                     reward_player_one += self.rewards.win
                     reward_player_two += self.rewards.loss
+                else:
+                    reward_player_one += self.rewards.loss
+                    reward_player_two += self.rewards.win
             self.agent_one.get_feedback(state, action, reward_player_one, next_state, finished)
             self.agent_two.get_feedback(state, action, reward_player_two, next_state, finished)
             if finished:
@@ -118,6 +121,9 @@ class Game:
                 if winner == self.agent_two.name:
                     reward_player_two += self.rewards.win
                     reward_player_one += self.rewards.loss
+                else:
+                    reward_player_one += self.rewards.loss
+                    reward_player_two += self.rewards.win
             self.agent_two.get_feedback(state, action, reward_player_two, next_state, finished)
             self.agent_one.get_feedback(state, action, reward_player_one, next_state, finished)
             cum_rewards_agent_one += reward_player_one
