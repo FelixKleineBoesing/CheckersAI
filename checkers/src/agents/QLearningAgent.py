@@ -115,7 +115,6 @@ class QLearningAgent(Agent):
         if self._number_turns % self._intervall_turns_load == 0 and self._number_turns > 1:
             self.load_weigths_into_target_network()
 
-
     def _get_symbolic_qvalues(self, state_t):
         """takes agent's observation, returns qvalues. Both are tf Tensors"""
         qvalues = self.network(state_t)

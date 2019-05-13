@@ -20,7 +20,7 @@ services:
     ports:
       - 127.0.0.1:5001:5001
     command:
-      - /python_backend/src/API.py
+      - /checkers/src/API.py
 
   pyredis:
     image: redis:5

@@ -4,7 +4,7 @@ from setuptools import find_packages
 
 setup(name='checkers',
       version='0.1',
-      description='Forecasting functions',
+      description='Checkers environment and Reinforcement Learning',
       url='',
       author='Felix Kleine Bösing',
       author_email='felix.boesing@t-online.de',
