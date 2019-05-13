@@ -13,7 +13,7 @@ from checkers.src.ReplayBuffer import ReplayBuffer
 class QLearningAgent(Agent):
 
     def __init__(self, state_shape: tuple, action_shape: tuple, name: str, side: str = "up", epsilon: float = 0.5,
-                 intervall_turns_train: int = 20, intervall_turns_load = 500):
+                 intervall_turns_train: int = 500, intervall_turns_load=10000):
         """
         Agent which implements Q Learning
         :param state_shape: shape of state
@@ -161,7 +161,7 @@ class QLearningAgent(Agent):
         }
 
     def train_network(self):
-        _, loss_t = self.sess.run([self._train_step, self._td_loss], self._sample_batch(batch_size=128))
+        _, loss_t = self.sess.run([self._train_step, self._td_loss], self._sample_batch(batch_size=512))
         self.td_loss_history.append(loss_t)
         self._moving_average.append(np.mean([self.td_loss_history[max([0,len(self.td_loss_history) - 100]):]]))
 
