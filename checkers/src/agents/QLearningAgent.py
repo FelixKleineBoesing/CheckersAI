@@ -53,11 +53,12 @@ class QLearningAgent(Agent):
         self._is_done_ph = tf.placeholder(tf.float32, shape=[None])
 
         self.saver = tf.train.Saver()
-        if os.path.isfile("../data/modeldata/model.ckpt"):
+        self._configure_target_model()
+        if os.path.isfile("../data/modeldata/model.ckpt.index"):
             self.saver.restore(self.sess, "../data/modeldata/model.ckpt")
 
         # copy weight to target weights
-        self._configure_target_model()
+
         self.load_weigths_into_target_network()
 
         super().__init__(state_shape, action_shape, name, side)
