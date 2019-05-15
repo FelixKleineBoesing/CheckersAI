@@ -21,8 +21,10 @@ class SARSAAgent(QLearningAgent):
 
     def get_feedback(self, state, action, reward, next_state, finished):
         if self._buffer_action is not None:
+            action_number_buffer = np.unravel_index(np.ravel_multi_index(action, self.action_shape), (4096,))[0]
             action_number = np.unravel_index(np.ravel_multi_index(action, self.action_shape), (4096,))[0]
-            self.exp_buffer.add(state, action_number, reward, next_state, finished, )
+            self.exp_buffer.add(self._buffer_state, action_number_buffer, self._buffer_reward, state,
+                                self._buffer_done, action_number)
         if self._number_turns % self._intervall_actions_train == 0 and self._number_turns > 1:
             self.train_network()
         if self._number_turns % self._intervall_turns_load == 0 and self._number_turns > 1:
@@ -32,6 +34,8 @@ class SARSAAgent(QLearningAgent):
         self._buffer_state = state
         self._buffer_reward = reward
         self._buffer_done = finished
+        if finished:
+            self._buffer_done, self._buffer_reward, self._buffer_state, self._buffer_action = None, None, None, None
 
     def _configure_target_model(self):
         # placeholders that will be fed with exp_replay.sample(batch_size)
