@@ -24,7 +24,6 @@ class QLearningAgent(Agent):
         """
 
         # tensorflow related stuff
-        tf.reset_default_graph()
         self.name = name
         self.sess = tf.InteractiveSession()
 
@@ -164,6 +163,7 @@ class QLearningAgent(Agent):
         _, loss_t = self.sess.run([self._train_step, self._td_loss], self._sample_batch(batch_size=512))
         self.td_loss_history.append(loss_t)
         self._moving_average.append(np.mean([self.td_loss_history[max([0,len(self.td_loss_history) - 100]):]]))
+        print(self._moving_average[-1])
 
     def _configure_network(self, state_shape: tuple):
         # define network
