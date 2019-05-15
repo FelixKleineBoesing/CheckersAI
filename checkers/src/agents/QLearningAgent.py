@@ -13,7 +13,7 @@ from checkers.src.ReplayBuffer import ReplayBuffer
 class QLearningAgent(Agent):
 
     def __init__(self, state_shape: tuple, action_shape: tuple, name: str, side: str = "up", epsilon: float = 0.5,
-                 intervall_turns_train: int = 500, intervall_turns_load=10000):
+                 intervall_turns_train: int = 500, intervall_turns_load: int = 10000):
         """
         Agent which implements Q Learning
         :param state_shape: shape of state
