@@ -11,9 +11,6 @@ In Development:
 - React Frontend for Vizualisation
 - Python Rest Interface
 
-#### TODO Manual about setup and usage 
-
-
 # CheckersAI
 
 This is a small learning project for Reinforcement Learning.
