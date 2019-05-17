@@ -57,7 +57,6 @@ class QLearningAgent(Agent):
             self.saver.restore(self.sess, "../data/modeldata/model.ckpt")
 
         # copy weight to target weights
-
         self.load_weigths_into_target_network()
 
         super().__init__(state_shape, action_shape, name, side)
@@ -160,7 +159,7 @@ class QLearningAgent(Agent):
         }
 
     def train_network(self):
-        _, loss_t = self.sess.run([self._train_step, self._td_loss], self._sample_batch(batch_size=512))
+        _, loss_t = self.sess.run([self._train_step, self._td_loss], self._sample_batch(batch_size=2048))
         self.td_loss_history.append(loss_t)
         self._moving_average.append(np.mean([self.td_loss_history[max([0,len(self.td_loss_history) - 100]):]]))
         print(self._moving_average[-1])
