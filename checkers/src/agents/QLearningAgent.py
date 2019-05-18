@@ -33,8 +33,8 @@ class QLearningAgent(Agent):
         self._intervall_actions_train = intervall_turns_train
         self._intervall_turns_load = intervall_turns_load
 
-        self.target_network = self._configure_network(state_shape)
-        self.network = self._configure_network(state_shape)
+        self.target_network = self._configure_network(state_shape, "target_{}".format(name))
+        self.network = self._configure_network(state_shape, self.name)
 
         # prepare a graph for agent step
         self.state_t = tf.placeholder('float32', [None, ] + list(state_shape))
@@ -42,7 +42,7 @@ class QLearningAgent(Agent):
 
         self.weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=name)
         self.epsilon = epsilon
-        self.target_weights = self.weights
+        self.target_weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="target")
         self.exp_buffer = ReplayBuffer(100000)
         self._batch_size = 2048
 
@@ -143,6 +143,7 @@ class QLearningAgent(Agent):
 
     def load_weigths_into_target_network(self):
         """ assign target_network.weights variables to their respective agent.weights values. """
+        logging.debug("Transfer Weight!")
         assigns = []
         for w_agent, w_target in zip(self.weights, self.target_weights):
             assigns.append(tf.assign(w_target, w_agent, validate_shape=True))
@@ -157,6 +158,7 @@ class QLearningAgent(Agent):
         }
 
     def train_network(self):
+        logging.debug("Train Network!")
         _, loss_t = self.sess.run([self._train_step, self._td_loss], self._sample_batch(batch_size=self._batch_size))
         self.td_loss_history.append(loss_t)
         self._moving_average.append(np.mean([self.td_loss_history[max([0,len(self.td_loss_history) - 100]):]]))
@@ -164,9 +166,9 @@ class QLearningAgent(Agent):
         relative_ma = self._moving_average[-1] / self._batch_size
         logging.info("Loss: {},     relative Loss: {}".format(ma, relative_ma))
 
-    def _configure_network(self, state_shape: tuple):
+    def _configure_network(self, state_shape: tuple, name: str):
         # define network
-        with tf.variable_scope(self.name, reuse=False):
+        with tf.variable_scope(name, reuse=False):
             network = keras.models.Sequential()
             # TODO try agent performance with rnn layers (perhaps LSTM since we have sequential dependencies in the data)
             network.add(Dense(512, activation="relu", input_shape=state_shape))
