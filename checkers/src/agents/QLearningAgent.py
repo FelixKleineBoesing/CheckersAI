@@ -4,6 +4,7 @@ import random
 from keras.layers import Dense, Flatten
 import keras
 import os
+import logging
 
 from checkers.src.agents.Agent import Agent
 from checkers.src.Helpers import ActionSpace
@@ -43,6 +44,7 @@ class QLearningAgent(Agent):
         self.epsilon = epsilon
         self.target_weights = self.weights
         self.exp_buffer = ReplayBuffer(100000)
+        self._batch_size = 2048
 
         # init placeholder
         self._obs_ph = tf.placeholder(tf.float32, shape=(None,) + state_shape)
@@ -155,10 +157,12 @@ class QLearningAgent(Agent):
         }
 
     def train_network(self):
-        _, loss_t = self.sess.run([self._train_step, self._td_loss], self._sample_batch(batch_size=2048))
+        _, loss_t = self.sess.run([self._train_step, self._td_loss], self._sample_batch(batch_size=self._batch_size))
         self.td_loss_history.append(loss_t)
         self._moving_average.append(np.mean([self.td_loss_history[max([0,len(self.td_loss_history) - 100]):]]))
-        print(self._moving_average[-1])
+        ma = self._moving_average[-1]
+        relative_ma = self._moving_average[-1] / self._batch_size
+        logging.info("Loss: {},     relative Loss: {}".format(ma, relative_ma))
 
     def _configure_network(self, state_shape: tuple):
         # define network

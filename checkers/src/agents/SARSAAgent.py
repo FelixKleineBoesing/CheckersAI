@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import os
+import logging
 
 from checkers.src.agents.QLearningAgent import QLearningAgent
 from checkers.src.ReplayBuffer import ReplayBufferSarsa
@@ -36,6 +37,7 @@ class SARSAAgent(QLearningAgent):
 
         self.target_network = self._configure_network(state_shape)
         self.network = self._configure_network(state_shape)
+        self._batch_size = 2048
 
         # prepare a graph for agent step
         self.state_t = tf.placeholder('float32', [None, ] + list(state_shape))
@@ -107,10 +109,12 @@ class SARSAAgent(QLearningAgent):
         self.sess.run(tf.global_variables_initializer())
 
     def train_network(self):
-        _, loss_t = self.sess.run([self._train_step, self._td_loss], self._sample_batch(batch_size=2048))
+        _, loss_t = self.sess.run([self._train_step, self._td_loss], self._sample_batch(batch_size=self._batch_size))
         self.td_loss_history.append(loss_t)
         self._moving_average.append(np.mean([self.td_loss_history[max([0,len(self.td_loss_history) - 100]):]]))
-        print(self._moving_average[-1])
+        ma = self._moving_average[-1]
+        relative_ma = self._moving_average[-1] / self._batch_size
+        logging.info("Loss: {},     relative Loss: {}".format(ma, relative_ma))
 
     def _sample_batch(self, batch_size):
         obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch, next_act_batch = self.exp_buffer.sample(batch_size)
