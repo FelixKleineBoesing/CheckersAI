@@ -37,7 +37,7 @@ def run_random_vs_qlearning():
     board_length = 8
     action_space = (board_length, board_length, board_length, board_length)
 
-    agent_one = QLearningAgent((board_length, board_length), action_space, "qlearning", "up", 0.99, 5000, 50000)
+    agent_one = QLearningAgent((board_length, board_length), action_space, "qlearning", "up", 0.99, 2500, 50000)
     agent_two = RandomAgent((board_length, board_length), (board_length, board_length), "Two", "down")
 
     for i in range(50000):

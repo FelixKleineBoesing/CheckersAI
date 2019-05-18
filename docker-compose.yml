@@ -24,8 +24,23 @@ services:
 
   pyredis:
     image: redis:5
+    container_name: checkers_redis
     ports:
       - 127.0.0.1:6379:6379
+    networks:
+      - pydb
+
+  pypostgres:
+    image: postgres:11
+    container_name: checkers_postgres
+    ports:
+      127.0.0.1:5432:5432
+    environment:
+      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: postgres
+      POSTGRES_DB: game-results
+    volumes:
+      - ./mountingData/transactionDB:/var/lib/postgresql/data
     networks:
       - pydb
 

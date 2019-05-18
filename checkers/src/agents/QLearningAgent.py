@@ -42,7 +42,7 @@ class QLearningAgent(Agent):
 
         self.weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=name)
         self.epsilon = epsilon
-        self.target_weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="target")
+        self.target_weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="target_{}".format(name))
         self.exp_buffer = ReplayBuffer(100000)
         self._batch_size = 2048
 
@@ -159,6 +159,8 @@ class QLearningAgent(Agent):
 
     def train_network(self):
         logging.debug("Train Network!")
+        for var in tf.global_variables():
+            print(var.name, self.sess.run(var))
         _, loss_t = self.sess.run([self._train_step, self._td_loss], self._sample_batch(batch_size=self._batch_size))
         self.td_loss_history.append(loss_t)
         self._moving_average.append(np.mean([self.td_loss_history[max([0,len(self.td_loss_history) - 100]):]]))
