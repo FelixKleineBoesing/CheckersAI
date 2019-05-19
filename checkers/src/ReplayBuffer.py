@@ -101,7 +101,8 @@ class ReplayBufferSarsa:
             obses_tp1.append(np.array(obs_tp1, copy=False))
             dones.append(done)
             next_actions.append(next_states)
-        return np.array(obses_t), np.array(actions), np.array(rewards), np.array(obses_tp1), np.array(dones)
+        return np.array(obses_t), np.array(actions), np.array(rewards), np.array(obses_tp1), np.array(dones), \
+               np.array(next_actions)
 
     def sample(self, batch_size):
         """Sample a batch of experiences.

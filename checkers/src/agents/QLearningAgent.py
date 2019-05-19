@@ -26,7 +26,7 @@ class QLearningAgent(Agent):
 
         # tensorflow related stuff
         self.name = name
-        self.sess = tf.InteractiveSession()
+        self.sess = tf.Session()
 
         # calculate number actions from actionshape
         self.number_actions = np.product(action_shape)
@@ -54,9 +54,10 @@ class QLearningAgent(Agent):
         self._is_done_ph = tf.placeholder(tf.float32, shape=[None])
 
         self.saver = tf.train.Saver()
+        self._saver_path = "../data/modeldata/model.ckpt"
         self._configure_target_model()
-        if os.path.isfile("../data/modeldata/model.ckpt.index"):
-            self.saver.restore(self.sess, "../data/modeldata/model.ckpt")
+        if os.path.isfile(self._saver_path + ".index"):
+            self.saver.restore(self.sess, self._saver_path)
 
         # copy weight to target weights
         self.load_weigths_into_target_network()
@@ -148,7 +149,7 @@ class QLearningAgent(Agent):
         for w_agent, w_target in zip(self.weights, self.target_weights):
             assigns.append(tf.assign(w_target, w_agent, validate_shape=True))
         self.sess.run(assigns)
-        self.saver.save(self.sess, "../data/modeldata/model.ckpt")
+        self.saver.save(self.sess, self._saver_path)
 
     def _sample_batch(self, batch_size):
         obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch = self.exp_buffer.sample(batch_size)
@@ -159,8 +160,6 @@ class QLearningAgent(Agent):
 
     def train_network(self):
         logging.debug("Train Network!")
-        for var in tf.global_variables():
-            print(var.name, self.sess.run(var))
         _, loss_t = self.sess.run([self._train_step, self._td_loss], self._sample_batch(batch_size=self._batch_size))
         self.td_loss_history.append(loss_t)
         self._moving_average.append(np.mean([self.td_loss_history[max([0,len(self.td_loss_history) - 100]):]]))
@@ -172,10 +171,7 @@ class QLearningAgent(Agent):
         # define network
         with tf.variable_scope(name, reuse=False):
             network = keras.models.Sequential()
-            # TODO try agent performance with rnn layers (perhaps LSTM since we have sequential dependencies in the data)
             network.add(Dense(512, activation="relu", input_shape=state_shape))
-            #network.add(Dense(1024, activation="relu"))
-            #network.add(Dense(2048, activation="relu"))
             network.add(Dense(4096, activation="relu"))
             network.add(Flatten())
             network.add(Dense(self.number_actions, activation="linear"))

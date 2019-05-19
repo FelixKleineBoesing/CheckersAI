@@ -37,10 +37,10 @@ def run_random_vs_qlearning():
     board_length = 8
     action_space = (board_length, board_length, board_length, board_length)
 
-    agent_one = QLearningAgent((board_length, board_length), action_space, "qlearning", "up", 0.99, 2500, 50000)
+    agent_one = QLearningAgent((board_length, board_length), action_space, "qlearning", "up", 0.0, 2500, 50000)
     agent_two = RandomAgent((board_length, board_length), (board_length, board_length), "Two", "down")
 
-    for i in range(50000):
+    for i in range(100):
         board = Board(board_length=8)
         game = Game("Test", agent_one=agent_one, agent_two=agent_two, board=board)
         game.play(verbose=False)
@@ -51,7 +51,7 @@ def run_random_vs_qlearning():
     victories_player_one = 0
 
     for winner in winners:
-        if winner == "One":
+        if winner == "qlearning":
             victories_player_one += 1
         if winner == "Two":
             victories_player_two += 1
@@ -89,8 +89,38 @@ def run_sarsa_vs_qlearning():
     print(victories_player_two)
 
 
+def run_sarsa_vs_random():
+    winners = []
+    board_length = 8
+    action_space = (board_length, board_length, board_length, board_length)
+
+    agent_one = SARSAAgent((board_length, board_length), action_space, "sarsa", "up", 1.0, 2000, 50000)
+    agent_two = RandomAgent((board_length, board_length), (board_length, board_length), "Two", "down")
+
+    for i in range(100):
+        board = Board(board_length=8)
+        game = Game("Test", agent_one=agent_one, agent_two=agent_two, board=board)
+        game.play(verbose=False)
+        winners += [game.winner]
+        agent_one.epsilon *= 0.9999
+
+    victories_player_two = 0
+    victories_player_one = 0
+
+    for winner in winners:
+        if winner == "One":
+            victories_player_one += 1
+        if winner == "Two":
+            victories_player_two += 1
+
+    print(victories_player_one)
+    print(victories_player_two)
+    print(victories_player_two)
+
+
 if __name__=="__main__":
     logging.getLogger().setLevel(logging.INFO)
     #run_random_vs_random_max()
-    run_random_vs_qlearning()
+    #run_random_vs_qlearning()
     #run_sarsa_vs_qlearning()
+    run_sarsa_vs_random()

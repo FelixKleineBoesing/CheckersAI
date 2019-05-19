@@ -1,13 +1,17 @@
 import tensorflow as tf
 import numpy as np
+import random
 import os
 import logging
+from keras.layers import Dense, Flatten
+import keras
 
-from checkers.src.agents.QLearningAgent import QLearningAgent
+from checkers.src.Helpers import ActionSpace
+from checkers.src.agents.Agent import Agent
 from checkers.src.ReplayBuffer import ReplayBufferSarsa
 
 
-class SARSAAgent(QLearningAgent):
+class SARSAAgent(Agent):
 
     def __init__(self, state_shape: tuple, action_shape: tuple, name: str, side: str = "up", epsilon: float = 0.5,
                  intervall_turns_train: int = 500, intervall_turns_load: int = 10000):
@@ -22,7 +26,7 @@ class SARSAAgent(QLearningAgent):
 
         # tensorflow related stuff
         self.name = name
-        self.sess = tf.InteractiveSession()
+        self.sess = tf.Session()
 
         # calculate number actions from actionshape
         self.number_actions = np.product(action_shape)
@@ -35,8 +39,8 @@ class SARSAAgent(QLearningAgent):
         self._buffer_reward = None
         self._buffer_done = None
 
-        self.target_network = self._configure_network(state_shape)
-        self.network = self._configure_network(state_shape)
+        self.target_network = self._configure_network(state_shape, "target_{}".format(name))
+        self.network = self._configure_network(state_shape, name)
         self._batch_size = 2048
 
         # prepare a graph for agent step
@@ -45,7 +49,7 @@ class SARSAAgent(QLearningAgent):
 
         self.weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=name)
         self.epsilon = epsilon
-        self.target_weights = self.weights
+        self.target_weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="target_{}".format(name))
         self.exp_buffer = ReplayBufferSarsa(100000)
 
         # init placeholder
@@ -57,14 +61,60 @@ class SARSAAgent(QLearningAgent):
         self._next_actions_ph = tf.placeholder(tf.int32, shape=[None])
 
         self.saver = tf.train.Saver()
+        self._saver_path = "../data/modeldata/sarsa/model.ckpt"
         self._configure_target_model()
-        if os.path.isfile("../data/modeldata/model_sarsa.ckpt.index"):
-            self.saver.restore(self.sess, "../data/modeldata/model_sarsa.ckpt")
+        if os.path.isfile(self._saver_path + ".index"):
+            self.saver.restore(self.sess, self._saver_path)
 
         # copy weight to target weights
         self.load_weigths_into_target_network()
 
         super().__init__(state_shape, action_shape, name, side)
+
+    def decision(self, state_space: np.ndarray, action_space: ActionSpace):
+        """
+        triggered by get play turn method of super class.
+        This is the method were the magic should happen that chooses the right action
+        :param state_space:
+        :param action_space:
+        :return:
+        """
+        #preprocess state space
+        # normalizing state space between zero and one
+        state_space = (state_space.astype('float32') - np.min(state_space)) / (np.max(state_space) - np.min(state_space))
+
+        qvalues = self._get_qvalues([state_space])
+        decision = self._sample_actions(qvalues, action_space)
+        return decision
+
+    def _get_qvalues(self, state_t):
+        """Same as symbolic step except it operates on numpy arrays"""
+        return self.sess.run(self.qvalues_t, {self.state_t: state_t})
+
+    def _sample_actions(self, qvalues: np.ndarray, action_space: ActionSpace):
+        """
+        pick actions given qvalues. Uses epsilon-greedy exploration strategy.
+        :param qvalues: output values from network
+        :param action_space: action_space with all possible actions
+        :return: return stone_id and move_id
+        """
+        epsilon = self.epsilon
+        batch_size, x = qvalues.shape
+        dim = int(x ** 0.25)
+        qvalues_reshaped = np.reshape(qvalues, (dim, dim, dim, dim))
+        if random.random() < epsilon:
+            keys = [key for key in action_space.keys()]
+            ix = random.sample(range(len(keys)), 1)[0]
+            stone_id = keys[ix]
+            move_id = random.sample(range(len(action_space[stone_id])), 1)[0]
+            move = action_space[stone_id][move_id]
+            decision = np.concatenate([move["old_coord"], move["new_coord"]])
+        else:
+            possible_actions = qvalues_reshaped * action_space.space_array
+            flattened_index = np.nanargmax(possible_actions)
+            decision = np.array(np.unravel_index(flattened_index, self.action_shape))
+
+        return decision
 
     def get_feedback(self, state, action, reward, next_state, finished):
         if self._buffer_action is not None:
@@ -85,6 +135,11 @@ class SARSAAgent(QLearningAgent):
         # if finished set the buffers toi none since we don´t want to mix episodes with each other
         if finished:
             self._buffer_done, self._buffer_reward, self._buffer_state, self._buffer_action = None, None, None, None
+
+    def _get_symbolic_qvalues(self, state_t):
+        """takes agent's observation, returns qvalues. Both are tf Tensors"""
+        qvalues = self.network(state_t)
+        return qvalues
 
     def _configure_target_model(self):
         # placeholders that will be fed with exp_replay.sample(batch_size)
@@ -116,9 +171,28 @@ class SARSAAgent(QLearningAgent):
         relative_ma = self._moving_average[-1] / self._batch_size
         logging.info("Loss: {},     relative Loss: {}".format(ma, relative_ma))
 
+    def load_weigths_into_target_network(self):
+        """ assign target_network.weights variables to their respective agent.weights values. """
+        logging.debug("Transfer Weight!")
+        assigns = []
+        for w_agent, w_target in zip(self.weights, self.target_weights):
+            assigns.append(tf.assign(w_target, w_agent, validate_shape=True))
+        self.sess.run(assigns)
+        self.saver.save(self.sess, self._saver_path)
+
     def _sample_batch(self, batch_size):
         obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch, next_act_batch = self.exp_buffer.sample(batch_size)
         return {
             self._obs_ph: obs_batch, self._actions_ph: act_batch, self._rewards_ph: reward_batch,
             self._next_obs_ph: next_obs_batch, self._is_done_ph: is_done_batch, self._next_actions_ph: next_act_batch
         }
+
+    def _configure_network(self, state_shape: tuple, name: str):
+        # define network
+        with tf.variable_scope(name, reuse=False):
+            network = keras.models.Sequential()
+            network.add(Dense(512, activation="relu", input_shape=state_shape))
+            network.add(Dense(4096, activation="relu"))
+            network.add(Flatten())
+            network.add(Dense(self.number_actions, activation="linear"))
+        return network
