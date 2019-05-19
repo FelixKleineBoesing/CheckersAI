@@ -4,3 +4,4 @@ tensorflow
 keras
 waitress
 flask
+sqlalchemy

@@ -14,7 +14,8 @@ from checkers.src.ReplayBuffer import ReplayBuffer
 class QLearningAgent(Agent):
 
     def __init__(self, state_shape: tuple, action_shape: tuple, name: str, side: str = "up", epsilon: float = 0.5,
-                 intervall_turns_train: int = 500, intervall_turns_load: int = 10000):
+                 intervall_turns_train: int = 500, intervall_turns_load: int = 10000,
+                 saver_path: str = "../data/modeldata/q/model.ckpt"):
         """
         Agent which implements Q Learning
         :param state_shape: shape of state
@@ -54,7 +55,7 @@ class QLearningAgent(Agent):
         self._is_done_ph = tf.placeholder(tf.float32, shape=[None])
 
         self.saver = tf.train.Saver()
-        self._saver_path = "../data/modeldata/model.ckpt"
+        self._saver_path = saver_path
         self._configure_target_model()
         if os.path.isfile(self._saver_path + ".index"):
             self.saver.restore(self.sess, self._saver_path)

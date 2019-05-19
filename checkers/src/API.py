@@ -17,7 +17,14 @@ agents = [{"name": "RandomAgentWithMaxValue", "description": "Agent that randoml
                                                              "maximum value based on the jumped stones"},
           {"name": "RandomAgent", "description": "Agent that randomly chooses actions"},
           {"name": "QLearningAgent", "description": "Q Learning Agent that greedily chooses the actions with the "
-                                                    "highest Q Values"}]
+                                                    "highest Q Values"},
+          {"name": "QLearningLSTMAgent", "description": "Q Learning Agent that uses LSTM Memory Units instead of "
+                                                        "usual Dense Layers!"},
+          {"name": "SARSAAgent", "description": "SARSA Agent that considers which action is done in the next state, "
+                                                "instead of just taking the max value of all actions!"},
+          {"name": "SARSALSTMAgent", "description": "SARSA Agent that considers which action is done in the next state,"
+                                                    "instead of just taking the max value of all actions! "
+                                                    "It uses LSTMs instead of Dense Layers!"}]
 
 
 @app.route("/get_agents", methods=["GET"])
@@ -30,13 +37,13 @@ def run_game():
     try:
         agent_one = getattr(sys.modules["__main__"], request.args.get("agent_one"))
     except AttributeError:
-        return json.dumps({"status": "error", "error_type": "NoPlayerFound", "text": "The specified agent one could not "
-                                                                                     "be found"})
+        return json.dumps({"status": "error", "error_type": "NoPlayerFound", "text": "The specified agent one could not"
+                                                                                     " be found"})
     try:
         agent_two = getattr(sys.modules["__main__"], request.args.get("agent_two"))
     except AttributeError:
-        return json.dumps({"status": "error", "error_type": "NoPlayerFound", "text": "The specified agent two could not "
-                                                                                     "be found"})
+        return json.dumps({"status": "error", "error_type": "NoPlayerFound", "text": "The specified agent two could not"
+                                                                                     " be found"})
 
     board_len = 8
     agent_one = agent_one((board_len, board_len), (board_len, board_len), "One", "up")
