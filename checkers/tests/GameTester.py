@@ -66,7 +66,7 @@ def run_sarsa_vs_qlearning():
     action_space = (board_length, board_length, board_length, board_length)
 
     agent_one = QLearningAgent((board_length, board_length), action_space, "qlearning", "up", 0.0, 2000000000, 5000000000)
-    agent_two = SARSAAgent((board_length, board_length), action_space, "sarsa", "down", 1.0, 2000, 50000)
+    agent_two = SARSAAgent((board_length, board_length), action_space, "sarsa", "down", 0.0, 20000000, 500000000)
     iterations = 100
     for i in range(iterations):
         board = Board(board_length=8)
@@ -94,7 +94,7 @@ def run_sarsa_vs_random():
 
     agent_one = SARSAAgent((board_length, board_length), action_space, "sarsa", "up", 0.0, 2000, 50000)
     agent_two = RandomAgent((board_length, board_length), (board_length, board_length), "Two", "down")
-    iterations = 100
+    iterations = 500
     for i in range(iterations):
         board = Board(board_length=8)
         game = Game("Test", agent_one=agent_one, agent_two=agent_two, board=board)
@@ -111,7 +111,7 @@ def run_sarsa_vs_random():
                     victories_player_two += 1
 
             logging.info("PLayer One: {}".format(str(victories_player_one)))
-            logging.info("PLayer One: {}".format(str(victories_player_two)))
+            logging.info("PLayer Two: {}".format(str(victories_player_two)))
 
 
 if __name__=="__main__":

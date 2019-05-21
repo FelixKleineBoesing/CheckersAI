@@ -137,9 +137,6 @@ class Stone:
                     break
         return moves
 
-    def move_stone(self):
-        pass
-
 
     @staticmethod
     def _check_if_position_on_board(coord: tuple, board_size: int):
