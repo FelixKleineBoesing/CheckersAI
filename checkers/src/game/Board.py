@@ -1,6 +1,6 @@
 import numpy as np
 
-from checkers.src.Stone import Stone
+from checkers.src.game.Stone import Stone
 from checkers.src.agents.Agent import Agent
 from checkers.src.Helpers import Rewards
 from checkers.src.Helpers import ActionSpace

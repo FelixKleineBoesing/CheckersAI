@@ -1,6 +1,6 @@
 import numpy as np
 
-from checkers.src.Board import Board
+from checkers.src.game.Board import Board
 from checkers.src.agents.Agent import Agent
 from checkers.src.Helpers import Rewards
 from checkers.src.Helpers import default_rewards

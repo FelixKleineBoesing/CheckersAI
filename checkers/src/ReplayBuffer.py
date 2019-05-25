@@ -126,3 +126,10 @@ class ReplayBufferSarsa:
         """
         idxes = [random.randint(0, len(self._storage) - 1) for _ in range(batch_size)]
         return self._encode_sample(idxes)
+
+
+class EpisodeBuffer:
+
+    #TODO create EPisodeBuffer which stores whole episodes (to feed LSTMs with them)
+    def __init__(self):
+        pass

@@ -45,7 +45,7 @@ class QLearningAgent(Agent):
         self.epsilon = epsilon
         self.target_weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="target_{}".format(name))
         self.exp_buffer = ReplayBuffer(100000)
-        self._batch_size = 2048
+        self._batch_size = 4096
 
         # init placeholder
         self._obs_ph = tf.placeholder(tf.float32, shape=(None,) + state_shape)

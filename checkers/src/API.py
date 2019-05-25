@@ -1,10 +1,5 @@
-from checkers.src.Helpers import default_rewards
-from checkers.src.Board import Board
-from checkers.src.Game import Game
-from checkers.src.Stone import Stone
-from checkers.src.agents.RandomAgentWithMaxValue import RandomAgentWithMaxValue
-from checkers.src.agents.RandomAgent import RandomAgent
-from checkers.src.agents.QLearningAgent import QLearningAgent
+from checkers.src.game.Board import Board
+from checkers.src.game.Game import Game
 
 from flask import Flask
 from flask import request
