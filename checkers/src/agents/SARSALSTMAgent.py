@@ -2,6 +2,7 @@ import tensorflow as tf
 from keras.layers import Dense, Flatten, LSTM
 import keras
 
+from checkers.src.ReplayBuffer import EpisodeBuffer
 from checkers.src.agents.SARSAAgent import SARSAAgent
 
 
@@ -21,6 +22,7 @@ class SARSALSTMAgent(SARSAAgent):
 
         super().__init__(state_shape, action_shape, name, side, epsilon, intervall_turns_train, intervall_turns_load,
                          saver_path)
+        self.exp_buffer = EpisodeBuffer(5000)
 
     def _configure_network(self, state_shape: tuple, name: str):
         # define network

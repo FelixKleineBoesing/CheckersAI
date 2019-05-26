@@ -3,6 +3,7 @@ from keras.layers import Dense, Flatten, LSTM
 import keras
 
 from checkers.src.agents.QLearningAgent import QLearningAgent
+from checkers.src.ReplayBuffer import EpisodeBuffer
 
 
 class QLearningLSTMAgent(QLearningAgent):
@@ -21,6 +22,7 @@ class QLearningLSTMAgent(QLearningAgent):
 
         super().__init__(state_shape, action_shape, name, side, epsilon, intervall_turns_train, intervall_turns_load,
                          saver_path)
+        self.exp_buffer = EpisodeBuffer(5000)
 
     def _configure_network(self, state_shape: tuple, name: str):
         # define network
