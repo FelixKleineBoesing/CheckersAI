@@ -19,6 +19,7 @@ class SARSALSTMAgent(SARSAAgent):
         :param side: is he going to start at the top or at the bottom?
         :param epsilon: exploration factor
         """
+        # TODO reshape states as lstm expects 3d instead of 2d arrays
 
         super().__init__(state_shape, action_shape, name, side, epsilon, intervall_turns_train, intervall_turns_load,
                          saver_path)
