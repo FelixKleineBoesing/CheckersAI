@@ -143,7 +143,6 @@ class SARSAAgent(Agent):
         return qvalues
 
     def _configure_target_model(self):
-        # placeholders that will be fed with exp_replay.sample(batch_size)
         is_not_done = 1 - self._is_done_ph
         gamma = 0.99
         current_qvalues = self._get_symbolic_qvalues(self._obs_ph)
