@@ -100,7 +100,7 @@ class SARSAAgent(Agent):
         :return: return stone_id and move_id
         """
         epsilon = self.epsilon
-        batch_size, x = qvalues.shape
+        batch_size, step, x = qvalues.shape
         dim = int(x ** 0.25)
         qvalues_reshaped = np.reshape(qvalues, (dim, dim, dim, dim))
         if random.random() < epsilon:

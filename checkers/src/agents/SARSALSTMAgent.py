@@ -6,6 +6,7 @@ import os
 
 from checkers.src.ReplayBuffer import EpisodeBuffer
 from checkers.src.agents.SARSAAgent import SARSAAgent
+from checkers.src.agents.Agent import Agent
 
 
 class SARSALSTMAgent(SARSAAgent):
@@ -66,15 +67,18 @@ class SARSALSTMAgent(SARSAAgent):
         # copy weight to target weights
         self.load_weigths_into_target_network()
         self.exp_buffer = EpisodeBuffer(5000)
-        super().__init__(state_shape, action_shape, name, side)
+        self.side = side
+        self.state_shape = state_shape
+        self.action_shape = action_shape
+        self._number_turns = 0
 
     def _configure_network(self, state_shape: tuple, name: str):
         # define network
         with tf.variable_scope(name, reuse=False):
             network = keras.models.Sequential()
-            network.add(LSTM(512, activation="relu", input_shape=(1, 64), return_sequences=True))
-            network.add(LSTM(2048, activation="relu", return_sequences=True))
-            network.add(LSTM(4096, activation="relu", return_sequences=True))
+            network.add(LSTM(8, activation="relu", input_shape=(1, 64), return_sequences=True))
+            network.add(LSTM(16, activation="relu", return_sequences=True))
+            network.add(LSTM(32, activation="relu", return_sequences=True))
             network.add(Dense(self.number_actions, activation="linear"))
         return network
 
@@ -85,7 +89,8 @@ class SARSALSTMAgent(SARSAAgent):
 
     def _get_qvalues(self, state_t):
         """Same as symbolic step except it operates on numpy arrays"""
-        return self.sess.run(self.qvalues_t, {self.state_t: state_t.reshape(1, 1, state_t.shape[1] * state_t.shape[2])})
+        return self.sess.run(self.qvalues_t, {self.state_t:
+                                                  state_t[0].reshape(1, 1, state_t[0].shape[0] * state_t[0].shape[1])})
 
     def _sample_batch(self, batch_size):
         obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch, next_act_batch = \
