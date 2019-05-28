@@ -133,8 +133,11 @@ class SARSAAgent(Agent):
         self._buffer_state = state
         self._buffer_reward = reward
         self._buffer_done = finished
-        # if finished set the buffers toi none since we don´t want to mix episodes with each other
+        # if finished set the buffers to none since we don´t want to mix episodes with each other
         if finished:
+            # zero as next action number is just a placeholder (we don´t use next action since the episode is finished
+            self.exp_buffer.add(state, action_number, reward, next_state,
+                                finished, 0)
             self._buffer_done, self._buffer_reward, self._buffer_state, self._buffer_action = None, None, None, None
 
     def _get_symbolic_qvalues(self, state_t):
