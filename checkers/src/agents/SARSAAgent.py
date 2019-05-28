@@ -123,7 +123,7 @@ class SARSAAgent(Agent):
                                                     (4096,))[0]
             action_number = np.unravel_index(np.ravel_multi_index(action, self.action_shape), (4096,))[0]
             self.exp_buffer.add(self._buffer_state, action_number_buffer, self._buffer_reward, state,
-                                self._buffer_done, action_number)
+                                finished, action_number)
         if self._number_turns % self._intervall_actions_train == 0 and self._number_turns > 1:
             self.train_network()
         if self._number_turns % self._intervall_turns_load == 0 and self._number_turns > 1:
@@ -192,7 +192,10 @@ class SARSAAgent(Agent):
         with tf.variable_scope(name, reuse=False):
             network = keras.models.Sequential()
             network.add(Dense(512, activation="relu", input_shape=state_shape))
+            network.add(Dense(1024, activation="relu"))
+            network.add(Dense(2048, activation="relu"))
             network.add(Dense(4096, activation="relu"))
+            network.add(Dense(2048, activation="relu"))
             network.add(Flatten())
             network.add(Dense(self.number_actions, activation="linear"))
         return network

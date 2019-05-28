@@ -76,9 +76,12 @@ class SARSALSTMAgent(SARSAAgent):
         # define network
         with tf.variable_scope(name, reuse=False):
             network = keras.models.Sequential()
-            network.add(LSTM(8, activation="relu", input_shape=(1, 64), return_sequences=True))
-            network.add(LSTM(16, activation="relu", return_sequences=True))
-            network.add(LSTM(32, activation="relu", return_sequences=True))
+            network.add(LSTM(64, activation="relu", input_shape=(1, 64), return_sequences=True))
+            network.add(LSTM(128, activation="relu", return_sequences=True))
+            network.add(LSTM(256, activation="relu", return_sequences=True))
+            network.add(Dense(512, activation="relu"))
+            network.add(Dense(512, activation="relu"))
+            network.add(Dense(512, activation="relu"))
             network.add(Dense(self.number_actions, activation="linear"))
         return network
 
@@ -95,8 +98,8 @@ class SARSALSTMAgent(SARSAAgent):
     def _sample_batch(self, batch_size):
         obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch, next_act_batch = \
             self.exp_buffer.sample(batch_size)
-        obs_batch = obs_batch.reshape(obs_batch[0], 1, obs_batch.shape[1] * obs_batch.shape[2])
-        next_obs_batch = next_obs_batch.reshape(next_obs_batch[0], 1, next_obs_batch.shape[1] * next_obs_batch.shape[2])
+        obs_batch = obs_batch.reshape(obs_batch.shape[0], 1, obs_batch.shape[1] * obs_batch.shape[2])
+        next_obs_batch = next_obs_batch.reshape(next_obs_batch.shape[0], 1, next_obs_batch.shape[1] * next_obs_batch.shape[2])
         return {
             self._obs_ph: obs_batch, self._actions_ph: act_batch, self._rewards_ph: reward_batch,
             self._next_obs_ph: next_obs_batch, self._is_done_ph: is_done_batch, self._next_actions_ph: next_act_batch
