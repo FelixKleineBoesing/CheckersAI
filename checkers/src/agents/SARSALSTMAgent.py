@@ -82,6 +82,7 @@ class SARSALSTMAgent(SARSAAgent):
             network.add(Dense(512, activation="relu"))
             network.add(Dense(512, activation="relu"))
             network.add(Dense(512, activation="relu"))
+            network.add(Flatten())
             network.add(Dense(self.number_actions, activation="linear"))
         return network
 
