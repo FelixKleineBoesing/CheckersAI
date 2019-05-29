@@ -40,7 +40,7 @@ class SARSALSTMAgent(SARSAAgent):
 
         self.target_network = self._configure_network(state_shape, "target_{}".format(name))
         self.network = self._configure_network(state_shape, name)
-        self._batch_size = 2048
+        self._batch_size = 4096
 
         # prepare a graph for agent step
         self.state_t = tf.placeholder('float32', [None, ] + list((1, state_shape[0] * state_shape[1])))
@@ -108,3 +108,33 @@ class SARSALSTMAgent(SARSAAgent):
             self._obs_ph: obs_batch, self._actions_ph: act_batch, self._rewards_ph: reward_batch,
             self._next_obs_ph: next_obs_batch, self._is_done_ph: is_done_batch, self._next_actions_ph: next_act_batch
         }
+
+
+class SARSALSTMStepsAgent(SARSALSTMAgent):
+
+    def __init__(self, state_shape: tuple, action_shape: tuple, name: str, side: str = "up", epsilon: float = 0.5,
+                 intervall_turns_train: int = 500, intervall_turns_load: int = 10000,
+                 saver_path: str = "../data/modeldata/sarsalstmsteps/model.ckpt"):
+        super().__init__(state_shape, action_shape, name, side, epsilon, intervall_turns_train, intervall_turns_load,
+                         saver_path)
+
+    def _configure_network(self, state_shape: tuple, name: str):
+        # define network
+        with tf.variable_scope(name, reuse=False):
+            network = keras.models.Sequential()
+            network.add(LSTM(64, activation="relu", input_shape=(1, 64), return_sequences=True))
+            network.add(LSTM(128, activation="relu", return_sequences=True))
+            network.add(LSTM(256, activation="relu", return_sequences=True))
+            network.add(Dropout(0.2))
+            network.add(Dense(512, activation="relu"))
+            network.add(Dropout(0.3))
+            network.add(Dense(512, activation="relu"))
+            network.add(Dropout(0.4))
+            network.add(Dense(512, activation="relu"))
+            network.add(Flatten())
+            network.add(Dense(self.number_actions, activation="linear"))
+        return network
+
+    def _get_qvalues(self, state_t):
+        # TODO append last n statest as timesteps for lstm
+        pass
