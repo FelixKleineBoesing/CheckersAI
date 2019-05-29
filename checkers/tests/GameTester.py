@@ -120,9 +120,9 @@ def run_sarsa_lstm_vs_random():
     board_length = 8
     action_space = (board_length, board_length, board_length, board_length)
 
-    agent_one = SARSALSTMAgent((board_length, board_length), action_space, "sarsa_lstm", "up", 1.0, 2000, 50000)
+    agent_one = SARSALSTMAgent((board_length, board_length), action_space, "sarsa_lstm", "up", 0.0, 200000, 500000)
     agent_two = RandomAgent((board_length, board_length), (board_length, board_length), "Two", "down")
-    iterations = 50000
+    iterations = 1000
     for i in range(iterations):
         board = Board(board_length=8)
         game = Game("Test", agent_one=agent_one, agent_two=agent_two, board=board)
@@ -133,7 +133,7 @@ def run_sarsa_lstm_vs_random():
             victories_player_two = 0
             victories_player_one = 0
             for winner in winners:
-                if winner == "sarsa":
+                if winner == "sarsa_lstm":
                     victories_player_one += 1
                 if winner == "Two":
                     victories_player_two += 1

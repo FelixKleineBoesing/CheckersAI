@@ -1,5 +1,5 @@
 import tensorflow as tf
-from keras.layers import Dense, Flatten, LSTM
+from keras.layers import Dense, Flatten, LSTM, Dropout
 import keras
 import numpy as np
 import os
@@ -79,8 +79,11 @@ class SARSALSTMAgent(SARSAAgent):
             network.add(LSTM(64, activation="relu", input_shape=(1, 64), return_sequences=True))
             network.add(LSTM(128, activation="relu", return_sequences=True))
             network.add(LSTM(256, activation="relu", return_sequences=True))
+            network.add(Dropout(0.2))
             network.add(Dense(512, activation="relu"))
+            network.add(Dropout(0.3))
             network.add(Dense(512, activation="relu"))
+            network.add(Dropout(0.4))
             network.add(Dense(512, activation="relu"))
             network.add(Flatten())
             network.add(Dense(self.number_actions, activation="linear"))

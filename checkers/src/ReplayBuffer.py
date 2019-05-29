@@ -92,9 +92,15 @@ class ReplayBufferSarsa(ReplayBuffer):
 
 class EpisodeBuffer:
 
-
-    #TODO create EPisodeBuffer which stores whole episodes (to feed LSTMs with them)
+    """
+    This Buffer implementation stores and samples whole episodes instead of random samples from multiple episodes
+    which comes in handy when you use recurrent neural networks which rely on detecting time dependend connections
+    """
     def __init__(self, size: int = 1000):
+        """
+        ATTENTION! Size is now related to the amount of episodes that should be stored - not (state, action)-tuples
+        :param size:
+        """
         self._episode_number = 0
         self._episode_length = {}
         self._buffer_storage = []

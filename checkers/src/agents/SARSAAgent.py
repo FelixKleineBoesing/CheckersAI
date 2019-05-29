@@ -3,7 +3,7 @@ import numpy as np
 import random
 import os
 import logging
-from keras.layers import Dense, Flatten
+from keras.layers import Dense, Flatten, Dropout
 import keras
 
 from checkers.src.Helpers import ActionSpace
@@ -197,7 +197,9 @@ class SARSAAgent(Agent):
             network.add(Dense(512, activation="relu", input_shape=state_shape))
             network.add(Dense(1024, activation="relu"))
             network.add(Dense(2048, activation="relu"))
+            network.add(Dropout(0.3))
             network.add(Dense(4096, activation="relu"))
+            network.add(Dropout(0.4))
             network.add(Dense(2048, activation="relu"))
             network.add(Flatten())
             network.add(Dense(self.number_actions, activation="linear"))
