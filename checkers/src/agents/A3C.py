@@ -14,6 +14,7 @@ class A3C(Agent):
     def __init__(self, state_shape: tuple, action_shape: tuple, name: str, side: str = "up", epsilon: float = 0.5,
                  intervall_turns_train: int = 500, intervall_turns_load: int = 10000,
                  saver_path: str = "../data/modeldata/a3c/model.ckpt"):
+        #TODO finalize
         # tensorflow related stuff
         self.name = name
         self.sess = tf.Session()
