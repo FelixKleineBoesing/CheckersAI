@@ -1,5 +1,5 @@
 import tensorflow as tf
-from keras.layers import Dense, Flatten, LSTM, Dropout
+from keras.layers import Dense, Flatten, LSTM, Dropout, Input
 import keras
 import numpy as np
 import os
@@ -54,19 +54,25 @@ class A3C(Agent):
 
         super().__init__(state_shape, action_shape, name, side)
 
-
     def _configure_network(self, state_shape: tuple, name: str):
         # define network
         with tf.variable_scope(name, reuse=False):
-            network = keras.models.Sequential()
-            network.add(LSTM(128, activation="relu", input_shape=(1, 64), return_sequences=True))
-            network.add(LSTM(256, activation="relu", return_sequences=True))
-            network.add(LSTM(512, activation="relu", return_sequences=True))
-            network.add(Dense(1024, activation="relu"))
-            network.add(Dense(2048, activation="relu"))
-            network.add(Dense(1024, activation="relu"))
-            network.add(Flatten())
-            network.add(Dense(self.number_actions, activation="linear"))
+            inputs = Input(shape=(1, 64))
+            x = LSTM(128, activation="relu", input_shape=(1, 64), return_sequences=True)(inputs)
+            x = LSTM(256, activation="relu", return_sequences=True)(x)
+            x = LSTM(512, activation="relu", return_sequences=True)(x)
+            x = Dense(1024, activation="relu")(x)
+            x = Dense(2048, activation="relu")(x)
+            x = Dense(1024, activation="relu")(x)
+            x = Flatten()(x)
+
+            logits = Dense(self.number_actions, activation="linear")(x)
+            state_value = Dense(1, activation="linear")(x)
+            network = keras.models.Model(inputs=inputs, outputs=[logits, state_value])
+
+            self.state_t = tf.placeholder('float32', [None, ] + list(state_shape))
+            self.agent_outputs = self._get_symbolic_qvalues(self.state_t)
+
         return network
 
     def load_weigths_into_target_network(self):
@@ -106,7 +112,7 @@ class A3C(Agent):
 
         # compute q-values for NEXT states with target network
         next_qvalues_target = self.target_network(self._next_obs_ph)
-        next_state_values_target = tf.reduce_sum(tf.one_hot(self._actions_ph, self.number_actions) * current_qvalues, axis=1)
+        next_state_values_target = tf.reduce_max(next_qvalues_target, axis=-1)
         reference_qvalues = self._rewards_ph + gamma * next_state_values_target * is_not_done
 
         # Define loss function for sgd.
@@ -116,3 +122,10 @@ class A3C(Agent):
         self._moving_average = []
         self._train_step = tf.train.AdamOptimizer(1e-3).minimize(self._td_loss, var_list=self.weights)
         self.sess.run(tf.global_variables_initializer())
+
+    def _sample_batch(self, batch_size):
+        obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch = self.exp_buffer.sample(batch_size)
+        return {
+            self._obs_ph: obs_batch, self._actions_ph: act_batch, self._rewards_ph: reward_batch,
+            self._next_obs_ph: next_obs_batch, self._is_done_ph: is_done_batch
+        }

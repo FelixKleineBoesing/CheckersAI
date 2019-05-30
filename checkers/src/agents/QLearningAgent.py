@@ -132,7 +132,7 @@ class QLearningAgent(Agent):
 
         # compute q-values for NEXT states with target network
         next_qvalues_target = self.target_network(self._next_obs_ph)
-        next_state_values_target = tf.reduce_sum(tf.one_hot(self._actions_ph, self.number_actions) * current_qvalues, axis=1)
+        next_state_values_target = tf.reduce_max(next_qvalues_target, axis=-1)
         reference_qvalues = self._rewards_ph + gamma * next_state_values_target * is_not_done
 
         # Define loss function for sgd.
