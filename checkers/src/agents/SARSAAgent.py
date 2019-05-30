@@ -184,7 +184,8 @@ class SARSAAgent(Agent):
         self.saver.save(self.sess, self._saver_path)
 
     def _sample_batch(self, batch_size):
-        obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch, next_act_batch = self.exp_buffer.sample(batch_size)
+        obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch, next_act_batch = \
+            self.exp_buffer.sample(batch_size)
         return {
             self._obs_ph: obs_batch, self._actions_ph: act_batch, self._rewards_ph: reward_batch,
             self._next_obs_ph: next_obs_batch, self._is_done_ph: is_done_batch, self._next_actions_ph: next_act_batch
@@ -197,9 +198,7 @@ class SARSAAgent(Agent):
             network.add(Dense(512, activation="relu", input_shape=state_shape))
             network.add(Dense(1024, activation="relu"))
             network.add(Dense(2048, activation="relu"))
-            network.add(Dropout(0.3))
             network.add(Dense(4096, activation="relu"))
-            network.add(Dropout(0.4))
             network.add(Dense(2048, activation="relu"))
             network.add(Flatten())
             network.add(Dense(self.number_actions, activation="linear"))
