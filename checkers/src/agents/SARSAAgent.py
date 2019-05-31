@@ -45,7 +45,7 @@ class SARSAAgent(Agent):
 
         self.target_network = self._configure_network(state_shape, "target_{}".format(name))
         self.network = self._configure_network(state_shape, name)
-        self._batch_size = 2048
+        self._batch_size = 4096
 
         # prepare a graph for agent step
         self.state_t = tf.placeholder('float32', [None, ] + list(state_shape))

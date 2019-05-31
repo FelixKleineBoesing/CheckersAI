@@ -31,8 +31,13 @@ class QLearningLSTMAgent(QLearningAgent):
         # define network
         with tf.variable_scope(name, reuse=False):
             network = keras.models.Sequential()
-            network.add(LSTM(512, activation="relu", input_shape=state_shape))
-            network.add(LSTM(4096, activation="relu"))
+            network.add(LSTM(128, activation="relu", input_shape=(1, 64), return_sequences=True))
+            network.add(LSTM(256, activation="relu", return_sequences=True))
+            network.add(LSTM(512, activation="relu", return_sequences=True))
+            network.add(LSTM(1024, activation="relu", return_sequences=True))
+            network.add(Dense(2048, activation="relu"))
+            network.add(Dense(4096, activation="relu"))
+            network.add(Dense(2058, activation="relu"))
             network.add(Flatten())
             network.add(Dense(self.number_actions, activation="linear"))
         return network
