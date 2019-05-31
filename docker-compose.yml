@@ -16,7 +16,14 @@ services:
       - pydb
       - pyjs
     environment:
-      - test=123
+      - REDIS_HOST=pyredis
+      - REDIS_PORT=6379
+      - REDIS_DB=1
+      - POSTGRES_HOST=pypostgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=gameresults
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_USER=postgres
     ports:
       - 127.0.0.1:5001:5001
     command:
@@ -34,11 +41,11 @@ services:
     image: postgres:11
     container_name: checkers_postgres
     ports:
-      127.0.0.1:5432:5432
+      - 127.0.0.1:5432:5432
     environment:
-      POSTGRES_PASSWORD: admin
-      POSTGRES_USER: postgres
-      POSTGRES_DB: game-results
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=gameresults
     volumes:
       - ./mountingData/transactionDB:/var/lib/postgresql/data
     networks:
