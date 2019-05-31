@@ -10,7 +10,7 @@ class QLearningLSTMAgent(QLearningAgent):
 
     def __init__(self, state_shape: tuple, action_shape: tuple, name: str, side: str = "up", epsilon: float = 0.5,
                  intervall_turns_train: int = 500, intervall_turns_load: int = 10000,
-                 saver_path: str = "../data/modeldata/qlstm/model.ckpt"):
+                 saver_path: str = "../data/modeldata/qlstm/model.ckpt", caching: bool = False):
         """
         Agent which implements Q Learning
         :param state_shape: shape of state
@@ -21,7 +21,7 @@ class QLearningLSTMAgent(QLearningAgent):
         """
 
         super().__init__(state_shape, action_shape, name, side, epsilon, intervall_turns_train, intervall_turns_load,
-                         saver_path)
+                         saver_path, caching)
         self.exp_buffer = EpisodeBuffer(5000)
 
     def _configure_network(self, state_shape: tuple, name: str):

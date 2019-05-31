@@ -77,3 +77,13 @@ class ActionSpace:
             pdb.set_trace()
 
 
+class Config:
+
+    def __init__(self):
+        pass
+
+    def _load_from_file(self):
+        pass
+
+    def _get_from_env(self):
+        pass

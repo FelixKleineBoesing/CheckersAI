@@ -15,7 +15,7 @@ class QLearningAgent(Agent):
 
     def __init__(self, state_shape: tuple, action_shape: tuple, name: str, side: str = "up", epsilon: float = 0.5,
                  intervall_turns_train: int = 500, intervall_turns_load: int = 10000,
-                 saver_path: str = "../data/modeldata/q/model.ckpt"):
+                 saver_path: str = "../data/modeldata/q/model.ckpt", caching: bool = False):
         """
         Agent which implements Q Learning
         :param state_shape: shape of state
@@ -63,7 +63,7 @@ class QLearningAgent(Agent):
         # copy weight to target weights
         self.load_weigths_into_target_network()
 
-        super().__init__(state_shape, action_shape, name, side)
+        super().__init__(state_shape, action_shape, name, side, caching)
 
     def decision(self, state_space: np.ndarray, action_space: ActionSpace):
         """
@@ -138,8 +138,6 @@ class QLearningAgent(Agent):
         # Define loss function for sgd.
         td_loss = (current_action_qvalues - reference_qvalues) ** 2
         self._td_loss = tf.reduce_mean(td_loss)
-        self.td_loss_history = []
-        self._moving_average = []
         self._train_step = tf.train.AdamOptimizer(1e-3).minimize(self._td_loss, var_list=self.weights)
         self.sess.run(tf.global_variables_initializer())
 

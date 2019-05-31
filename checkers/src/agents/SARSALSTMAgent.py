@@ -13,7 +13,7 @@ class SARSALSTMAgent(SARSAAgent):
 
     def __init__(self, state_shape: tuple, action_shape: tuple, name: str, side: str = "up", epsilon: float = 0.5,
                  intervall_turns_train: int = 500, intervall_turns_load: int = 10000,
-                 saver_path: str = "../data/modeldata/sarsalstm/model.ckpt"):
+                 saver_path: str = "../data/modeldata/sarsalstm/model.ckpt", caching: bool = False):
         """
         Agent which implements Q Learning
         :param state_shape: shape of state
@@ -40,7 +40,7 @@ class SARSALSTMAgent(SARSAAgent):
 
         self.target_network = self._configure_network(state_shape, "target_{}".format(name))
         self.network = self._configure_network(state_shape, name)
-        self._batch_size = 4096
+        self._batch_size = 2048
 
         # prepare a graph for agent step
         self.state_t = tf.placeholder('float32', [None, ] + list((1, state_shape[0] * state_shape[1])))
@@ -71,6 +71,7 @@ class SARSALSTMAgent(SARSAAgent):
         self.state_shape = state_shape
         self.action_shape = action_shape
         self._number_turns = 0
+        super(Agent, self).__init__(state_shape, action_shape, name, side, caching)
 
     def _configure_network(self, state_shape: tuple, name: str):
         # define network
@@ -111,9 +112,9 @@ class SARSALSTMStepsAgent(SARSALSTMAgent):
 
     def __init__(self, state_shape: tuple, action_shape: tuple, name: str, side: str = "up", epsilon: float = 0.5,
                  intervall_turns_train: int = 500, intervall_turns_load: int = 10000,
-                 saver_path: str = "../data/modeldata/sarsalstmsteps/model.ckpt"):
+                 saver_path: str = "../data/modeldata/sarsalstmsteps/model.ckpt", caching: bool = False):
         super().__init__(state_shape, action_shape, name, side, epsilon, intervall_turns_train, intervall_turns_load,
-                         saver_path)
+                         saver_path, caching=caching)
 
     def _configure_network(self, state_shape: tuple, name: str):
         # define network
