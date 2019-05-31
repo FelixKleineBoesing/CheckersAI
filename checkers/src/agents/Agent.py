@@ -27,15 +27,18 @@ class Agent(abc.ABC):
         self._moving_average_loss = []
         self._reward_history = []
         self._moving_average_rewards = []
+        if config is None:
+            config = Config()
+
         if caching:
             logging.debug("Caching is considered! When you don´t deliver cache and stream by yourself, the agent will "
                           "get a redis stream and cache by default")
             if cache is None:
-                self.redis_cache = RedisCache()
+                self.redis_cache = RedisCache(host=config["host"], port=config["port"], db=int(config["db"]))
             else:
                 self.redis_cache = cache
             if channel is None:
-                self.redis_stream = RedisChannel()
+                self.redis_stream = RedisChannel(host=config["host"], port=config["port"], db=int(config["db"]))
             else:
                 self.redis_stream = channel
         else:

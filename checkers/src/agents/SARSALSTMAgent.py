@@ -71,7 +71,7 @@ class SARSALSTMAgent(SARSAAgent):
         self.state_shape = state_shape
         self.action_shape = action_shape
         self._number_turns = 0
-        super(Agent, self).__init__(state_shape, action_shape, name, side, caching)
+        Agent.__init__(self, state_shape, action_shape, name, side, caching)
 
     def _configure_network(self, state_shape: tuple, name: str):
         # define network

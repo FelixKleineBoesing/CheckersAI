@@ -1,6 +1,9 @@
 from typing import Union
 import numpy as np
 import pdb
+import simplejson
+import os
+import logging
 
 
 class Rewards:
@@ -80,10 +83,23 @@ class ActionSpace:
 class Config:
 
     def __init__(self):
-        pass
+        self._store = None
 
-    def _load_from_file(self):
-        pass
+    def _load_from_file(self, key: str):
+        self._store = simplejson.load("../../config.json")
 
-    def _get_from_env(self):
-        pass
+    def _get_from_env(self, key: str):
+        return os.environ[key]
+
+    def __getitem__(self, item):
+        if os.path.isfile("../../is_docker"):
+            try:
+                return self._get_from_env(item)
+            except KeyError:
+                logging.error("Key {} is not present in environment variables!")
+        else:
+            try:
+                return self._store[item]
+            except KeyError:
+                logging.error("Key {} is not present in config.json!")
+
