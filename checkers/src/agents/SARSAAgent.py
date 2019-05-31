@@ -174,7 +174,8 @@ class SARSAAgent(Agent):
         ma = self._moving_average_loss[-1]
         relative_ma = self._moving_average_loss[-1] / self._batch_size
         logging.info("Loss: {},     relative Loss: {}".format(ma, relative_ma))
-        self.publish_data()
+        if self.redis_cache is not None:
+            self.publish_data()
 
     def load_weigths_into_target_network(self):
         """ assign target_network.weights variables to their respective agent.weights values. """

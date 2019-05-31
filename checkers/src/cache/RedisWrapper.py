@@ -51,4 +51,4 @@ def get_key(value: str) -> str:
     :param value:
     :return:
     """
-    return hashlib.md5(value)
+    return hashlib.md5(value.encode("utf-8"))

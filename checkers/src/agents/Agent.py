@@ -44,6 +44,8 @@ class Agent(abc.ABC):
             else:
                 self.redis_channel = channel
         else:
+            self.redis_cache = None
+            self.redis_channel = None
             logging.info("No caching is considered!")
 
     def play_turn(self, state_space: np.ndarray, action_space: ActionSpace):

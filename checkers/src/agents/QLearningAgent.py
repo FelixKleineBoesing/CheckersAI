@@ -168,7 +168,8 @@ class QLearningAgent(Agent):
         ma = self._moving_average_loss[-1]
         relative_ma = self._moving_average_loss[-1] / self._batch_size
         logging.info("Loss: {},     relative Loss: {}".format(ma, relative_ma))
-        self.publish_data()
+        if self.redis_cache is not None:
+            self.publish_data()
 
     def _configure_network(self, state_shape: tuple, name: str):
         # define network
