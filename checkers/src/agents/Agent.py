@@ -1,15 +1,17 @@
 import abc
 import numpy as np
+import logging
 
 from checkers.src.Helpers import ActionSpace
 from checkers.src.Helpers import Config
-from checkers.src.cache.RedisWrapper import RedisCache, RedisStream
+from checkers.src.cache.RedisWrapper import RedisCache, RedisChannel
 
 
 class Agent(abc.ABC):
 
-    def __init__(self, state_shape: tuple, action_shape: tuple, name: str, side: str = "up", caching: bool = False,
-                 config: Config = None):
+    def __init__(self, state_shape: tuple, action_shape: tuple, name: str, side: str = "up",
+                 config: Config = None, caching: bool = False,
+                 cache: RedisCache = None, channel: RedisChannel = None):
         """
         abstract class for agent which define the general interface for Agents
         :param name:
@@ -26,9 +28,18 @@ class Agent(abc.ABC):
         self._reward_history = []
         self._moving_average_rewards = []
         if caching:
-            self.redis_cache = RedisCache()
-            self.redis_stream = RedisStream()
-
+            logging.debug("Caching is considered! When you don´t deliver cache and stream by yourself, the agent will "
+                          "get a redis stream and cache by default")
+            if cache is None:
+                self.redis_cache = RedisCache()
+            else:
+                self.redis_cache = cache
+            if channel is None:
+                self.redis_stream = RedisChannel()
+            else:
+                self.redis_stream = channel
+        else:
+            logging.info("No caching is considered!")
 
     def play_turn(self, state_space: np.ndarray, action_space: ActionSpace):
         """
@@ -66,7 +77,7 @@ class Agent(abc.ABC):
         """
         pass
 
-    def put_data_into_cache_and_stream(self, key, value):
+    def publish_data(self, key, value):
         pass
 
     def _put_in_cache(self):

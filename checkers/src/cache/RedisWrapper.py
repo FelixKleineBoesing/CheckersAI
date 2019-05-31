@@ -5,13 +5,13 @@ import asyncio
 import logging
 
 
-class RedisStream:
+class RedisChannel:
 
     def __init__(self, host: str = "localhost", port: int =6379, db: int = 1):
         self.host = host
         self.db = db
         self.port = port
-        self.redis_cache = redis.StrictRedis(host=host, port=port, db=db)
+        self.redis_cache = None
 
         async def _create_redis_cache():
             self.redis_cache = await aioredis.create_redis((self.host, self.port))
@@ -20,7 +20,7 @@ class RedisStream:
         loop = asyncio.get_event_loop()
         loop.run_until_complete(asyncio.gather(*tasks))
 
-    def put_into_stream(self, channel, message):
+    def put_into_channel(self, channel, message):
         self.redis_cache.publish(channel, message)
 
 
