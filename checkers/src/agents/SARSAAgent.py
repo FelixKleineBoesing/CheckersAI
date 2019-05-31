@@ -9,13 +9,16 @@ import keras
 from checkers.src.Helpers import ActionSpace
 from checkers.src.agents.Agent import Agent
 from checkers.src.ReplayBuffer import ReplayBufferSarsa
+from checkers.src.cache.RedisWrapper import RedisChannel, RedisCache
+from checkers.src.Helpers import Config
 
 
 class SARSAAgent(Agent):
 
     def __init__(self, state_shape: tuple, action_shape: tuple, name: str, side: str = "up", epsilon: float = 0.5,
                  intervall_turns_train: int = 500, intervall_turns_load: int = 10000,
-                 saver_path: str = "../data/modeldata/sarsa/model.ckpt", caching: bool = False):
+                 saver_path: str = "../data/modeldata/sarsa/model.ckpt", caching: bool = False,
+                 config: Config = None, cache: RedisCache = None, channel: RedisChannel = None):
         """
                Agent which implements Q Learning
                :param state_shape: shape of state
@@ -70,7 +73,7 @@ class SARSAAgent(Agent):
         # copy weight to target weights
         self.load_weigths_into_target_network()
 
-        super().__init__(state_shape, action_shape, name, side, caching)
+        super().__init__(state_shape, action_shape, name, side, config, caching, cache, channel)
 
     def decision(self, state_space: np.ndarray, action_space: ActionSpace):
         """

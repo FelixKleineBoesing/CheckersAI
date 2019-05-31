@@ -4,16 +4,19 @@ import keras
 import numpy as np
 import os
 
+from checkers.src.Helpers import Config
 from checkers.src.ReplayBuffer import EpisodeBuffer
 from checkers.src.agents.SARSAAgent import SARSAAgent
 from checkers.src.agents.Agent import Agent
+from checkers.src.cache.RedisWrapper import RedisChannel, RedisCache
 
 
 class SARSALSTMAgent(SARSAAgent):
 
     def __init__(self, state_shape: tuple, action_shape: tuple, name: str, side: str = "up", epsilon: float = 0.5,
                  intervall_turns_train: int = 500, intervall_turns_load: int = 10000,
-                 saver_path: str = "../data/modeldata/sarsalstm/model.ckpt", caching: bool = False):
+                 saver_path: str = "../data/modeldata/sarsalstm/model.ckpt", caching: bool = False,
+                 config: Config = None, cache: RedisCache = None, channel: RedisChannel = None):
         """
         Agent which implements Q Learning
         :param state_shape: shape of state
@@ -71,7 +74,7 @@ class SARSALSTMAgent(SARSAAgent):
         self.state_shape = state_shape
         self.action_shape = action_shape
         self._number_turns = 0
-        Agent.__init__(self, state_shape, action_shape, name, side, caching)
+        Agent.__init__(self, state_shape, action_shape, name, side, config, caching, cache, channel)
 
     def _configure_network(self, state_shape: tuple, name: str):
         # define network
