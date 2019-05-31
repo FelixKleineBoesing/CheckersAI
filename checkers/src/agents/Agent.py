@@ -1,10 +1,12 @@
 import abc
 import numpy as np
 import logging
+import datetime
 
 from checkers.src.Helpers import ActionSpace
 from checkers.src.Helpers import Config
 from checkers.src.cache.RedisWrapper import RedisCache, RedisChannel
+from checkers.src.cache.RedisWrapper import get_key
 
 
 class Agent(abc.ABC):
@@ -38,9 +40,9 @@ class Agent(abc.ABC):
             else:
                 self.redis_cache = cache
             if channel is None:
-                self.redis_stream = RedisChannel(host=config["host"], port=config["port"], db=int(config["db"]))
+                self.redis_channel = RedisChannel(host=config["host"], port=config["port"], db=int(config["db"]))
             else:
-                self.redis_stream = channel
+                self.redis_channel = channel
         else:
             logging.info("No caching is considered!")
 
@@ -80,11 +82,17 @@ class Agent(abc.ABC):
         """
         pass
 
-    def publish_data(self, key, value):
-        pass
+    def publish_data(self):
+        data = {"rewards": self._reward_history,
+                "avg_rewards": self._moving_average_rewards,
+                "loss": self._td_loss_history,
+                "avg_loss": self._moving_average_loss}
+        key = get_key(self.name)
+        self._put_in_cache(key, data)
+        self._put_in_channel(self.name, key)
 
-    def _put_in_cache(self):
-        pass
+    def _put_in_cache(self, key: str, data: dict):
+        self.redis_cache.put_data_into_cache(key, data)
 
-    def _put_in_stream(self):
-        pass
+    def _put_in_channel(self, channel_name: str, key: str):
+        self.redis_channel.put_into_channel(channel_name, {"target": "stats", "data_key": key})

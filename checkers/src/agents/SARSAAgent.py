@@ -164,18 +164,17 @@ class SARSAAgent(Agent):
         # Define loss function for sgd.
         td_loss = (current_action_qvalues - reference_qvalues) ** 2
         self._td_loss = tf.reduce_mean(td_loss)
-        self.td_loss_history = []
-        self._moving_average = []
-        self._train_step = tf.train.AdamOptimizer(1e-2).minimize(self._td_loss, var_list=self.weights)
+        self._train_step = tf.train.AdamOptimizer(0.1).minimize(self._td_loss, var_list=self.weights)
         self.sess.run(tf.global_variables_initializer())
 
     def train_network(self):
         _, loss_t = self.sess.run([self._train_step, self._td_loss], self._sample_batch(batch_size=self._batch_size))
-        self.td_loss_history.append(loss_t)
-        self._moving_average.append(np.mean([self.td_loss_history[max([0, len(self.td_loss_history) - 100]):]]))
-        ma = self._moving_average[-1]
-        relative_ma = self._moving_average[-1] / self._batch_size
+        self._td_loss_history.append(loss_t)
+        self._moving_average_loss.append(np.mean([self._td_loss_history[max([0, len(self._td_loss_history) - 100]):]]))
+        ma = self._moving_average_loss[-1]
+        relative_ma = self._moving_average_loss[-1] / self._batch_size
         logging.info("Loss: {},     relative Loss: {}".format(ma, relative_ma))
+        self.publish_data()
 
     def load_weigths_into_target_network(self):
         """ assign target_network.weights variables to their respective agent.weights values. """

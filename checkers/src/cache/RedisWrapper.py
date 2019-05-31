@@ -45,5 +45,10 @@ class RedisCache:
             raise KeyError("Key not present in redis cache")
 
 
-def get_key(placeholder: dict) -> str:
-    return hashlib.md5(placeholder)
+def get_key(value: str) -> str:
+    """
+    creates hash key for given string
+    :param value:
+    :return:
+    """
+    return hashlib.md5(value)
