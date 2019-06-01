@@ -24,11 +24,11 @@ class Agent(abc.ABC):
         self.side = side
         self.state_shape = state_shape
         self.action_shape = action_shape
-        self._number_turns = 0
-        self._td_loss_history = []
-        self._moving_average_loss = []
-        self._reward_history = []
-        self._moving_average_rewards = []
+        self.number_turns = 0
+        self.td_loss_history = []
+        self.moving_average_loss = []
+        self.reward_history = []
+        self.moving_average_rewards = []
         self._episode_reward = 0
         if config is None:
             config = Config()
@@ -61,7 +61,7 @@ class Agent(abc.ABC):
         decision = self.decision(state_space, action_space)
         assert isinstance(decision, np.ndarray), "decision return must be a numpy array"
         assert len(decision) == 4, "decision return must be a np array with length 4"
-        self._number_turns += 1
+        self.number_turns += 1
         return decision
 
     def get_feedback(self, state: np.ndarray, action: int, reward: float, next_state: np.ndarray, finished: bool):
@@ -75,9 +75,9 @@ class Agent(abc.ABC):
         :return: No return
         """
         if finished:
-            self._reward_history.append(self._episode_reward + reward)
-            self._moving_average_rewards.append(
-                np.mean([self._reward_history[max([0, len(self._reward_history) - 100]):]]))
+            self.reward_history.append(self._episode_reward + reward)
+            self.moving_average_rewards.append(
+                np.mean([self.reward_history[max([0, len(self.reward_history) - 100]):]]))
             self._episode_reward = 0
         else:
             self._episode_reward += reward
@@ -108,10 +108,10 @@ class Agent(abc.ABC):
         pass
 
     def publish_data(self):
-        data = {"rewards": self._reward_history,
-                "avg_rewards": self._moving_average_rewards,
-                "loss": self._td_loss_history,
-                "avg_loss": self._moving_average_loss}
+        data = {"rewards": self.reward_history,
+                "avg_rewards": self.moving_average_rewards,
+                "loss": self.td_loss_history,
+                "avg_loss": self.moving_average_loss}
         key = get_key(self.name)
         self._put_in_cache(key, data)
         self._put_in_channel(self.name, key)

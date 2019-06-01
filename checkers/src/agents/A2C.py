@@ -61,12 +61,11 @@ class A2C(Agent):
         # define network
         with tf.variable_scope(name, reuse=False):
             inputs = Input(shape=(1, 64))
-            x = LSTM(128, activation="relu", input_shape=(1, 64), return_sequences=True)(inputs)
-            x = LSTM(256, activation="relu", return_sequences=True)(x)
-            x = LSTM(512, activation="relu", return_sequences=True)(x)
-            x = Dense(1024, activation="relu")(x)
+            x = LSTM(512, activation="relu", input_shape=(1, 64), return_sequences=True)(inputs)
+            #x = LSTM(1024, activation="relu", return_sequences=True)(x)
+            #x = LSTM(2048, activation="relu", return_sequences=True)(x)
+            #x = Dense(4096, activation="relu")(x)
             x = Dense(2048, activation="relu")(x)
-            x = Dense(1024, activation="relu")(x)
             x = Flatten()(x)
 
             logits = Dense(self.number_actions, activation="linear")(x)
@@ -128,18 +127,18 @@ class A2C(Agent):
     def get_feedback(self, state, action, reward, next_state, finished):
         action_number = np.unravel_index(np.ravel_multi_index(action, self.action_shape), (4096,))[0]
         self.exp_buffer.add(state, action_number, reward, next_state, finished)
-        if self._number_turns % self._intervall_actions_train == 0 and self._number_turns > 1:
+        if self.number_turns % self._intervall_actions_train == 0 and self.number_turns > 1:
             self.train_network()
-        if self._number_turns % self._intervall_turns_load == 0 and self._number_turns > 1:
+        if self.number_turns % self._intervall_turns_load == 0 and self.number_turns > 1:
             self.load_weigths_into_target_network()
 
     def train_network(self):
         logging.debug("Train Network!")
         _, loss_t = self.sess.run([self._train_step, self._entropy], self._sample_batch(batch_size=self._batch_size))
-        self._td_loss_history.append(loss_t)
-        self._moving_average_loss.append(np.mean([self._td_loss_history[max([0, len(self._td_loss_history) - 100]):]]))
-        ma = self._moving_average_loss[-1]
-        relative_ma = self._moving_average_loss[-1] / self._batch_size
+        self.td_loss_history.append(loss_t)
+        self.moving_average_loss.append(np.mean([self.td_loss_history[max([0, len(self.td_loss_history) - 100]):]]))
+        ma = self.moving_average_loss[-1]
+        relative_ma = self.moving_average_loss[-1] / self._batch_size
         logging.info("Loss: {},     relative Loss: {}".format(ma, relative_ma))
 
     def _get_symbolic_qvalues(self, state_t):

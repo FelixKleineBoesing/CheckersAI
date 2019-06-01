@@ -197,6 +197,8 @@ def run_a2c_vs_random():
             logging.info("Current epsilon: {}".format(agent_one.epsilon))
             logging.info("PLayer One: {}".format(str(victories_player_one)))
             logging.info("PLayer Two: {}".format(str(victories_player_two)))
+            logging.info("Mean Rewards Agent One: {}".format(agent_one.moving_average_rewards[-1]))
+            logging.info("Mean Rewards Agent Two: {}".format(agent_two.moving_average_rewards[-1]))
 
 
 

@@ -127,9 +127,9 @@ class SARSAAgent(Agent):
             action_number = np.unravel_index(np.ravel_multi_index(action, self.action_shape), (4096,))[0]
             self.exp_buffer.add(self._buffer_state, action_number_buffer, self._buffer_reward, state,
                                 finished, action_number)
-        if self._number_turns % self._intervall_actions_train == 0 and self._number_turns > 1:
+        if self.number_turns % self._intervall_actions_train == 0 and self.number_turns > 1:
             self.train_network()
-        if self._number_turns % self._intervall_turns_load == 0 and self._number_turns > 1:
+        if self.number_turns % self._intervall_turns_load == 0 and self.number_turns > 1:
             self.load_weigths_into_target_network()
 
         self._buffer_action = action
@@ -169,10 +169,10 @@ class SARSAAgent(Agent):
 
     def train_network(self):
         _, loss_t = self.sess.run([self._train_step, self._td_loss], self._sample_batch(batch_size=self._batch_size))
-        self._td_loss_history.append(loss_t)
-        self._moving_average_loss.append(np.mean([self._td_loss_history[max([0, len(self._td_loss_history) - 100]):]]))
-        ma = self._moving_average_loss[-1]
-        relative_ma = self._moving_average_loss[-1] / self._batch_size
+        self.td_loss_history.append(loss_t)
+        self.moving_average_loss.append(np.mean([self.td_loss_history[max([0, len(self.td_loss_history) - 100]):]]))
+        ma = self.moving_average_loss[-1]
+        relative_ma = self.moving_average_loss[-1] / self._batch_size
         logging.info("Loss: {},     relative Loss: {}".format(ma, relative_ma))
         if self.redis_cache is not None:
             self.publish_data()
@@ -198,10 +198,10 @@ class SARSAAgent(Agent):
         # define network
         with tf.variable_scope(name, reuse=False):
             network = keras.models.Sequential()
-            network.add(Dense(256, activation="relu", input_shape=state_shape))
-            network.add(Dense(512, activation="relu"))
-            network.add(Dense(1024, activation="relu"))
-            network.add(Dense(2048, activation="relu"))
+            network.add(Dense(512, activation="relu", input_shape=state_shape))
+            #network.add(Dense(1024, activation="relu"))
+            #network.add(Dense(2048, activation="relu"))
+            #network.add(Dense(4096, activation="relu"))
             network.add(Dense(2048, activation="relu"))
             network.add(Flatten())
             network.add(Dense(self.number_actions, activation="linear"))

@@ -111,30 +111,3 @@ class SARSALSTMAgent(SARSAAgent):
             self._obs_ph: obs_batch, self._actions_ph: act_batch, self._rewards_ph: reward_batch,
             self._next_obs_ph: next_obs_batch, self._is_done_ph: is_done_batch, self._next_actions_ph: next_act_batch
         }
-
-
-class SARSALSTMStepsAgent(SARSALSTMAgent):
-
-    def __init__(self, state_shape: tuple, action_shape: tuple, name: str, side: str = "up", epsilon: float = 0.5,
-                 intervall_turns_train: int = 500, intervall_turns_load: int = 10000,
-                 saver_path: str = "../data/modeldata/sarsalstmsteps/model.ckpt", caching: bool = False):
-        super().__init__(state_shape, action_shape, name, side, epsilon, intervall_turns_train, intervall_turns_load,
-                         saver_path, caching=caching)
-
-    def _configure_network(self, state_shape: tuple, name: str):
-        # define network
-        with tf.variable_scope(name, reuse=False):
-            network = keras.models.Sequential()
-            network.add(LSTM(128, activation="relu", input_shape=(1, 64), return_sequences=True))
-            network.add(LSTM(256, activation="relu", return_sequences=True))
-            network.add(LSTM(512, activation="relu", return_sequences=True))
-            network.add(Dense(1024, activation="relu"))
-            network.add(Dense(2048, activation="relu"))
-            network.add(Dense(1024, activation="relu"))
-            network.add(Flatten())
-            network.add(Dense(self.number_actions, activation="linear"))
-        return network
-
-    def _get_qvalues(self, state_t):
-        # TODO append last n statest as timesteps for lstm
-        pass
