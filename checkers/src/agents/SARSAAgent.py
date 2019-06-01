@@ -164,7 +164,7 @@ class SARSAAgent(Agent):
         # Define loss function for sgd.
         td_loss = (current_action_qvalues - reference_qvalues) ** 2
         self._td_loss = tf.reduce_mean(td_loss)
-        self._train_step = tf.train.AdamOptimizer(0.1).minimize(self._td_loss, var_list=self.weights)
+        self._train_step = tf.train.AdamOptimizer(0.01).minimize(self._td_loss, var_list=self.weights)
         self.sess.run(tf.global_variables_initializer())
 
     def train_network(self):

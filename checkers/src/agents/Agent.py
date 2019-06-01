@@ -29,6 +29,7 @@ class Agent(abc.ABC):
         self._moving_average_loss = []
         self._reward_history = []
         self._moving_average_rewards = []
+        self._episode_reward = 0
         if config is None:
             config = Config()
 
@@ -63,7 +64,7 @@ class Agent(abc.ABC):
         self._number_turns += 1
         return decision
 
-    def get_feedback(self, state, action, reward, next_state, finished):
+    def get_feedback(self, state: np.ndarray, action: int, reward: float, next_state: np.ndarray, finished: bool):
         """
         through this function the agent gets information about the last turn
         :param state:
@@ -72,6 +73,26 @@ class Agent(abc.ABC):
         :param next_state:
         :param finished:
         :return: No return
+        """
+        if finished:
+            self._reward_history.append(self._episode_reward + reward)
+            self._moving_average_rewards.append(
+                np.mean([self._reward_history[max([0, len(self._reward_history) - 100]):]]))
+            self._episode_reward = 0
+        else:
+            self._episode_reward += reward
+        self._get_feedback_inner(state, action, reward, next_state, finished)
+
+    def _get_feedback_inner(self, state: np.ndarray, action: int, reward: float, next_state: np.ndarray,
+                            finished: bool):
+        """
+        implement this function if you want to gather informations about your game
+        :param state:
+        :param action:
+        :param reward:
+        :param next_state:
+        :param finished:
+        :return:
         """
         pass
 
