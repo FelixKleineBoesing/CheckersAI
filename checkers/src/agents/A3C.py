@@ -4,7 +4,9 @@ import keras
 import numpy as np
 import os
 import logging
+import random
 
+from checkers.src.Helpers import ActionSpace
 from checkers.src.ReplayBuffer import ReplayBuffer
 from checkers.src.agents.Agent import Agent
 
@@ -28,7 +30,7 @@ class A3C(Agent):
         self.network = self._configure_network(state_shape, self.name)
 
         # prepare a graph for agent step
-        self.state_t = tf.placeholder('float32', [None, ] + list(state_shape))
+        self.state_t = tf.placeholder('float32', [None, ] + list((1, state_shape[0] * state_shape[1])))
         self.qvalues_t = self._get_symbolic_qvalues(self.state_t)
 
         self.weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=name)
@@ -38,10 +40,10 @@ class A3C(Agent):
         self._batch_size = 4096
 
         # init placeholder
-        self._obs_ph = tf.placeholder(tf.float32, shape=(None,) + state_shape)
+        self._obs_ph = tf.placeholder(tf.float32, shape=(None,) + (1, state_shape[0] * state_shape[1]))
         self._actions_ph = tf.placeholder(tf.int32, shape=[None])
         self._rewards_ph = tf.placeholder(tf.float32, shape=[None])
-        self._next_obs_ph = tf.placeholder(tf.float32, shape=(None,) + state_shape)
+        self._next_obs_ph = tf.placeholder(tf.float32, shape=(None,) + (1, state_shape[0] * state_shape[1]))
         self._is_done_ph = tf.placeholder(tf.float32, shape=[None])
 
         self.saver = tf.train.Saver()
@@ -71,10 +73,48 @@ class A3C(Agent):
             state_value = Dense(1, activation="linear")(x)
             network = keras.models.Model(inputs=inputs, outputs=[logits, state_value])
 
-            self.state_t = tf.placeholder('float32', [None, ] + list(state_shape))
-            self.agent_outputs = self._get_symbolic_qvalues(self.state_t)
-
         return network
+
+    def decision(self, state_space: np.ndarray, action_space: ActionSpace):
+        """
+        triggered by get play turn method of super class.
+        This is the method were the magic should happen that chooses the right action
+        :param state_space:
+        :param action_space:
+        :return:
+        """
+        #preprocess state space
+        # normalizing state space between zero and one
+        state_space = (state_space.astype('float32') - np.min(state_space)) / (np.max(state_space) - np.min(state_space))
+
+        qvalues = self._get_qvalues([state_space])
+        decision = self._sample_actions(qvalues, action_space)
+        return decision
+
+    def _sample_actions(self, qvalues: np.ndarray, action_space: ActionSpace):
+        """
+        pick actions given qvalues. Uses epsilon-greedy exploration strategy.
+        :param qvalues: output values from network
+        :param action_space: action_space with all possible actions
+        :return: return stone_id and move_id
+        """
+        epsilon = self.epsilon
+        batch_size, x = qvalues.shape
+        dim = int(x ** 0.25)
+        qvalues_reshaped = np.reshape(qvalues, (dim, dim, dim, dim))
+        if random.random() < epsilon:
+            keys = [key for key in action_space.keys()]
+            ix = random.sample(range(len(keys)), 1)[0]
+            stone_id = keys[ix]
+            move_id = random.sample(range(len(action_space[stone_id])), 1)[0]
+            move = action_space[stone_id][move_id]
+            decision = np.concatenate([move["old_coord"], move["new_coord"]])
+        else:
+            possible_actions = qvalues_reshaped * action_space.space_array
+            flattened_index = np.nanargmax(possible_actions)
+            decision = np.array(np.unravel_index(flattened_index, self.action_shape))
+
+        return decision
 
     def load_weigths_into_target_network(self):
         """ assign target_network.weights variables to their respective agent.weights values. """
@@ -84,6 +124,14 @@ class A3C(Agent):
             assigns.append(tf.assign(w_target, w_agent, validate_shape=True))
         self.sess.run(assigns)
         self.saver.save(self.sess, self._saver_path)
+
+    def get_feedback(self, state, action, reward, next_state, finished):
+        action_number = np.unravel_index(np.ravel_multi_index(action, self.action_shape), (4096,))[0]
+        self.exp_buffer.add(state, action_number, reward, next_state, finished)
+        if self._number_turns % self._intervall_actions_train == 0 and self._number_turns > 1:
+            self.train_network()
+        if self._number_turns % self._intervall_turns_load == 0 and self._number_turns > 1:
+            self.load_weigths_into_target_network()
 
     def train_network(self):
         logging.debug("Train Network!")
@@ -96,8 +144,8 @@ class A3C(Agent):
 
     def _get_symbolic_qvalues(self, state_t):
         """takes agent's observation, returns qvalues. Both are tf Tensors"""
-        qvalues, state_values = self.network(state_t)
-        return qvalues, state_values
+        qvalues = self.network(state_t)
+        return qvalues
 
     def _get_qvalues(self, state_t):
         """Same as symbolic step except it operates on numpy arrays"""
@@ -118,7 +166,8 @@ class A3C(Agent):
         logp_actions = tf.reduce_sum(logprobs * tf.one_hot(self._actions_ph, self.number_actions), axis=-1)
         advantage = self._rewards_ph + gamma * next_state_values - state_values
         self._entropy = -tf.reduce_sum(probs * logprobs, 1, name="entropy")
-        self._actor_loss = - tf.reduce_mean(logp_actions * tf.stop_gradient(advantage)) - 0.001 * tf.reduce_mean(entropy)
+        self._actor_loss = - tf.reduce_mean(logp_actions * tf.stop_gradient(advantage)) - 0.001 * \
+                           tf.reduce_mean(self._entropy)
         target_state_values = self._rewards_ph + gamma * next_state_values
         self._critic_loss = tf.reduce_mean((state_values - tf.stop_gradient(target_state_values)) ** 2)
 
@@ -127,6 +176,8 @@ class A3C(Agent):
 
     def _sample_batch(self, batch_size):
         obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch = self.exp_buffer.sample(batch_size)
+        obs_batch = obs_batch.reshape(obs_batch.shape[0], 1, obs_batch.shape[1] * obs_batch.shape[2])
+        next_obs_batch = next_obs_batch.reshape(next_obs_batch.shape[0], 1, next_obs_batch.shape[1] * next_obs_batch.shape[2])
         return {
             self._obs_ph: obs_batch, self._actions_ph: act_batch, self._rewards_ph: reward_batch,
             self._next_obs_ph: next_obs_batch, self._is_done_ph: is_done_batch

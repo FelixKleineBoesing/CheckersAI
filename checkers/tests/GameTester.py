@@ -8,6 +8,7 @@ from checkers.src.agents.QLearningAgent import QLearningAgent
 from checkers.src.agents.QLearningLSTMAgent import QLearningLSTMAgent
 from checkers.src.agents.SARSAAgent import SARSAAgent
 from checkers.src.agents.SARSALSTMAgent import SARSALSTMAgent
+from checkers.src.agents.A3C import A3C
 
 
 def run_random_vs_random_max():
@@ -171,6 +172,35 @@ def run_q_lstm_vs_random():
             logging.info("PLayer Two: {}".format(str(victories_player_two)))
 
 
+def run_a3c_vs_random():
+    winners = []
+    board_length = 8
+    action_space = (board_length, board_length, board_length, board_length)
+
+    agent_one = A3C((board_length, board_length), action_space, "a3c", "up", 1.0, 2000, 100000)
+    agent_two = RandomAgent((board_length, board_length), (board_length, board_length), "Two", "down")
+    iterations = 200000
+    for i in range(iterations):
+        board = Board(board_length=8)
+        game = Game("Test", agent_one=agent_one, agent_two=agent_two, board=board)
+        game.play(verbose=False)
+        winners += [game.winner]
+        agent_one.epsilon *= 0.99999
+        if (i % 5000 == 0 and i > 0) or (iterations - 1 == i):
+            victories_player_two = 0
+            victories_player_one = 0
+            for winner in winners:
+                if winner == "a3c":
+                    victories_player_one += 1
+                if winner == "Two":
+                    victories_player_two += 1
+            logging.info("Current epsilon: {}".format(agent_one.epsilon))
+            logging.info("PLayer One: {}".format(str(victories_player_one)))
+            logging.info("PLayer Two: {}".format(str(victories_player_two)))
+
+
+
+
 if __name__=="__main__":
     logging.getLogger().setLevel(logging.INFO)
     #run_random_vs_random_max()
@@ -179,3 +209,4 @@ if __name__=="__main__":
     #run_sarsa_vs_random()
     #run_sarsa_lstm_vs_random()
     #run_q_lstm_vs_random()
+    run_a3c_vs_random()
