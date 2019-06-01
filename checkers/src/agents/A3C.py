@@ -87,11 +87,11 @@ class A3C(Agent):
 
     def train_network(self):
         logging.debug("Train Network!")
-        _, loss_t = self.sess.run([self._train_step, self._td_loss], self._sample_batch(batch_size=self._batch_size))
-        self.td_loss_history.append(loss_t)
-        self._moving_average.append(np.mean([self.td_loss_history[max([0,len(self.td_loss_history) - 100]):]]))
-        ma = self._moving_average[-1]
-        relative_ma = self._moving_average[-1] / self._batch_size
+        _, loss_t = self.sess.run([self._train_step, self._entropy], self._sample_batch(batch_size=self._batch_size))
+        self._td_loss_history.append(loss_t)
+        self._moving_average_loss.append(np.mean([self._td_loss_history[max([0, len(self._td_loss_history) - 100]):]]))
+        ma = self._moving_average_loss[-1]
+        relative_ma = self._moving_average_loss[-1] / self._batch_size
         logging.info("Loss: {},     relative Loss: {}".format(ma, relative_ma))
 
     def _get_symbolic_qvalues(self, state_t):
@@ -117,7 +117,7 @@ class A3C(Agent):
 
         logp_actions = tf.reduce_sum(logprobs * tf.one_hot(self._actions_ph, self.number_actions), axis=-1)
         advantage = self._rewards_ph + gamma * next_state_values - state_values
-        entropy = -tf.reduce_sum(probs * logprobs, 1, name="entropy")
+        self._entropy = -tf.reduce_sum(probs * logprobs, 1, name="entropy")
         self._actor_loss = - tf.reduce_mean(logp_actions * tf.stop_gradient(advantage)) - 0.001 * tf.reduce_mean(entropy)
         target_state_values = self._rewards_ph + gamma * next_state_values
         self._critic_loss = tf.reduce_mean((state_values - tf.stop_gradient(target_state_values)) ** 2)
