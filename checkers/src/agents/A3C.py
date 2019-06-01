@@ -96,8 +96,8 @@ class A3C(Agent):
 
     def _get_symbolic_qvalues(self, state_t):
         """takes agent's observation, returns qvalues. Both are tf Tensors"""
-        qvalues = self.network(state_t)
-        return qvalues
+        qvalues, state_values = self.network(state_t)
+        return qvalues, state_values
 
     def _get_qvalues(self, state_t):
         """Same as symbolic step except it operates on numpy arrays"""
@@ -108,20 +108,21 @@ class A3C(Agent):
         # placeholders that will be fed with exp_replay.sample(batch_size)
         is_not_done = 1 - self._is_done_ph
         gamma = 0.99
-        current_qvalues = self._get_symbolic_qvalues(self._obs_ph)
-        current_action_qvalues = tf.reduce_sum(tf.one_hot(self._actions_ph, self.number_actions) * current_qvalues, axis=1)
+        qvalues, state_values = self._get_symbolic_qvalues(self._obs_ph)
 
-        # compute q-values for NEXT states with target network
-        next_qvalues_target = self.target_network(self._next_obs_ph)
-        next_state_values_target = tf.reduce_max(next_qvalues_target, axis=-1)
-        reference_qvalues = self._rewards_ph + gamma * next_state_values_target * is_not_done
+        next_qvalues, next_state_values = self.target_network(self._next_obs_ph)
+        next_state_values = next_state_values * is_not_done
+        probs = tf.nn.softmax(qvalues)
+        logprobs = tf.nn.log_softmax(qvalues)
 
-        # Define loss function for sgd.
-        td_loss = (current_action_qvalues - reference_qvalues) ** 2
-        self._td_loss = tf.reduce_mean(td_loss)
-        self.td_loss_history = []
-        self._moving_average = []
-        self._train_step = tf.train.AdamOptimizer(1e-3).minimize(self._td_loss, var_list=self.weights)
+        logp_actions = tf.reduce_sum(logprobs * tf.one_hot(self._actions_ph, self.number_actions), axis=-1)
+        advantage = self._rewards_ph + gamma * next_state_values - state_values
+        entropy = -tf.reduce_sum(probs * logprobs, 1, name="entropy")
+        self._actor_loss = - tf.reduce_mean(logp_actions * tf.stop_gradient(advantage)) - 0.001 * tf.reduce_mean(entropy)
+        target_state_values = self._rewards_ph + gamma * next_state_values
+        self._critic_loss = tf.reduce_mean((state_values - tf.stop_gradient(target_state_values)) ** 2)
+
+        self._train_step = tf.train.AdamOptimizer(1e-3).minimize(self._actor_loss + self._critic_loss )
         self.sess.run(tf.global_variables_initializer())
 
     def _sample_batch(self, batch_size):
