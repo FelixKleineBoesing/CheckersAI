@@ -8,7 +8,7 @@ from checkers.src.agents.QLearningAgent import QLearningAgent
 from checkers.src.agents.QLearningLSTMAgent import QLearningLSTMAgent
 from checkers.src.agents.SARSAAgent import SARSAAgent
 from checkers.src.agents.SARSALSTMAgent import SARSALSTMAgent
-from checkers.src.agents.A2C import A3C
+from checkers.src.agents.A2C import A2C
 
 
 def run_random_vs_random_max():
@@ -122,10 +122,10 @@ def run_sarsa_lstm_vs_random():
     board_length = 8
     action_space = (board_length, board_length, board_length, board_length)
 
-    agent_one = SARSALSTMAgent((board_length, board_length), action_space, "sarsa_lstm", "up", 0.0, 2000, 100000,
+    agent_one = SARSALSTMAgent((board_length, board_length), action_space, "sarsa_lstm", "up", 1.0, 2000, 100000,
                                caching=False)
     agent_two = RandomAgent((board_length, board_length), (board_length, board_length), "Two", "down")
-    iterations = 100
+    iterations = 200000
     for i in range(iterations):
         board = Board(board_length=8)
         game = Game("Test", agent_one=agent_one, agent_two=agent_two, board=board)
@@ -172,12 +172,12 @@ def run_q_lstm_vs_random():
             logging.info("PLayer Two: {}".format(str(victories_player_two)))
 
 
-def run_a3c_vs_random():
+def run_a2c_vs_random():
     winners = []
     board_length = 8
     action_space = (board_length, board_length, board_length, board_length)
 
-    agent_one = A3C((board_length, board_length), action_space, "a3c", "up", 1.0, 2000, 100000)
+    agent_one = A2C((board_length, board_length), action_space, "a3c", "up", 1.0, 2000, 100000)
     agent_two = RandomAgent((board_length, board_length), (board_length, board_length), "Two", "down")
     iterations = 200000
     for i in range(iterations):
@@ -207,6 +207,6 @@ if __name__=="__main__":
     #run_random_vs_qlearning()
     #run_sarsa_vs_qlearning()
     #run_sarsa_vs_random()
-    #run_sarsa_lstm_vs_random()
+    run_sarsa_lstm_vs_random()
     #run_q_lstm_vs_random()
-    run_a3c_vs_random()
+    #run_a2c_vs_random()
