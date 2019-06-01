@@ -84,9 +84,9 @@ class SARSALSTMAgent(SARSAAgent):
             network.add(LSTM(256, activation="relu", return_sequences=True))
             network.add(LSTM(512, activation="relu", return_sequences=True))
             network.add(LSTM(1024, activation="relu", return_sequences=True))
+            network.add(Dense(1024, activation="relu"))
             network.add(Dense(2048, activation="relu"))
-            network.add(Dense(4096, activation="relu"))
-            network.add(Dense(2048, activation="relu"))
+            network.add(Dense(1024, activation="relu"))
             network.add(Flatten())
             network.add(Dense(self.number_actions, activation="linear"))
 

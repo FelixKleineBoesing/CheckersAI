@@ -36,11 +36,13 @@ class Agent(abc.ABC):
             logging.debug("Caching is considered! When you don´t deliver cache and stream by yourself, the agent will "
                           "get a redis stream and cache by default")
             if cache is None:
-                self.redis_cache = RedisCache(host=config["host"], port=config["port"], db=int(config["db"]))
+                self.redis_cache = RedisCache(host=config["REDIS_HOST"], port=config["REDIS_PORT"],
+                                              db=int(config["REDIS_DB"]))
             else:
                 self.redis_cache = cache
             if channel is None:
-                self.redis_channel = RedisChannel(host=config["host"], port=config["port"], db=int(config["db"]))
+                self.redis_channel = RedisChannel(host=config["REDIS_HOST"], port=config["REDIS_PORT"],
+                                                  db=int(config["REDIS_DB"]))
             else:
                 self.redis_channel = channel
         else:

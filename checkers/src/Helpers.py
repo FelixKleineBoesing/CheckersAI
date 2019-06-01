@@ -83,10 +83,11 @@ class ActionSpace:
 class Config:
 
     def __init__(self):
-        self._store = None
+        self._load_from_file()
 
-    def _load_from_file(self, key: str):
-        self._store = simplejson.load("../../config.json")
+    def _load_from_file(self):
+        with open("../../config.json", "r") as f:
+            self._store = simplejson.load(f)
 
     def _get_from_env(self, key: str):
         return os.environ[key]
