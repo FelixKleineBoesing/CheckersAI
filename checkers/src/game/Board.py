@@ -61,7 +61,7 @@ class Board:
         for stone_id in self.stones:
             stone = self.stones[stone_id]
             if stone.player.name == player_name and stone.removed == False:
-                spec_act_space = stone.get_possible_moves(self.board_length, self.board)
+                spec_act_space = stone.get_possible_moves(self.board)
                 for move in spec_act_space:
                     if move["jumped_values"] != 0:
                         jumping_possible = True

@@ -136,6 +136,12 @@ class Game:
         self.cum_rewards_agent_two = cum_rewards_agent_one
 
     def _get_move_and_stone(self, action: np.ndarray, action_space: ActionSpace):
+        """
+        This helper function return the move and stone_id from action space base on the given action tuple
+        :param action:
+        :param action_space:
+        :return:
+        """
         stone_id = self.board.id_store[action[0], action[1]]
         for move in action_space[stone_id]:
             if move["new_coord"][0] == action[2] and move["new_coord"][1] == action[3]:
@@ -144,10 +150,18 @@ class Game:
         return move, stone_id
 
     def _game_finished(self, turns_without_removed_stone: int):
+        """
+        checks if game is finished. This is the case if one of the player vanished (loss/win) from board or no stone has been
+        taken since at least 25 turns (draw)
+        :param turns_without_removed_stone: as it says
+        :return:
+        """
         player_vanished, players = self.board.check_if_player_without_stones()
+        # players is a unique list containing the names of players of not removed stones.
+        # Therefore the list contains only the winner at index zero if the other player lost
         if player_vanished:
             return True, "Player {} won!".format(players[0]), players[0]
-        elif turns_without_removed_stone >= 40:
+        elif turns_without_removed_stone >= 25:
             return True, "Draw!", None
         else:
             return False, "", None

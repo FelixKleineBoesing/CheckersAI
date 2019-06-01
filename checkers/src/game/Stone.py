@@ -33,7 +33,14 @@ class Stone:
         if self.start_row > middle and self.coord[0] == 0 and abs(self.value) == 1:
             self.value = self.value * 2
 
-    def get_possible_moves(self, board_size: int, board: np.ndarray):
+    def get_possible_moves(self, board: np.ndarray):
+        """
+        implements the move rule set of checkers, since the possible moves are depended of the status of the chosen
+        stone (whether its normal or a check)
+        :param board:
+        :return:
+        """
+        board_size = board.shape[0]
         moves = []
         if abs(self.value) == 1:
             if self.start_row <= 2:
@@ -47,7 +54,7 @@ class Stone:
             i = 1
             while within_board:
                 coord = self.coord + direction * i
-                within_board = self._check_if_position_on_board(coord, board_size)
+                within_board = _check_if_position_on_board(coord, board_size)
                 # break if first step is already out of board
                 if not within_board:
                     break
@@ -62,7 +69,7 @@ class Stone:
                 if value_board < 0 and self.value > 0 or value_board > 0 and self.value < 0:
                     # check if it can be jumped
                     coord_jump = coord + direction
-                    within_board_after_jump = self._check_if_position_on_board(coord_jump, board_size)
+                    within_board_after_jump = _check_if_position_on_board(coord_jump, board_size)
                     # break if place behind stone is out of border
                     if not within_board_after_jump:
                         break
@@ -72,7 +79,7 @@ class Stone:
                     if value_board_jump != 0:
                         break
                     jumped_stones += [coord]
-                    moves_tmp = self.jump_chain(directions, board, coord_jump, board_size, value_board, jumped_stones)
+                    moves_tmp = self.jump_chain(directions, board, coord_jump, value_board, jumped_stones)
                     if len(moves_tmp) > 0:
                         moves += moves_tmp
                     else:
@@ -84,8 +91,19 @@ class Stone:
                     break
         return moves
 
-    def jump_chain(self, directions: list, board: np.ndarray, coord: tuple, board_size: int,
-                   value_jumped: int, jumped_stones: list):
+    def jump_chain(self, directions: list, board: np.ndarray, coord: tuple, value_jumped: int, jumped_stones: list):
+        """
+        checks whether there could be a stone be jumped over in a while since there may be another stone which can
+        be jumped over after the first stone is jumped over
+        :param directions: marks the directions a stone is able to jump. direction is delivered as -1 and 1 for rows
+        and columns of board
+        :param board: board representation as numpy array
+        :param coord: actual coordinates
+        :param value_jumped: value of stone that is jumped over before
+        :param jumped_stones: coordinates of already jumped stones
+        :return:
+        """
+        board_size = board.shape[0]
         moves = []
         coord_original = coord
         for direction in directions:
@@ -97,7 +115,7 @@ class Stone:
             # while loop because ladies can move mutiple steps
             while within_board:
                 coord = coord_original + direction * i
-                within_board = self._check_if_position_on_board(coord, board_size)
+                within_board = _check_if_position_on_board(coord, board_size)
                 # break if first step is already out of board
                 if not within_board:
                     break
@@ -113,10 +131,10 @@ class Stone:
                 if already_jumped:
                     break
                 # if there if a stone of the enemy
-                if value_board < 0 and self.value > 0 or value_board > 0 and self.value < 0:
+                if (value_board < 0 < self.value) or (value_board > 0 > self.value):
                     # check if it can be jumped
                     coord_jump = coord + direction
-                    within_board_after_jump = self._check_if_position_on_board(coord_jump, board_size)
+                    within_board_after_jump = _check_if_position_on_board(coord_jump, board_size)
                     if not within_board_after_jump:
                         break
                     if board[coord_jump[0], coord_jump[1]] != 0:
@@ -124,8 +142,7 @@ class Stone:
                     jumped_stones_tmp += [coord]
                     tmp_jumped_values = abs(value_jumped) + abs(value_board)
                     self.recursion_level += 1
-                    tmp_moves += self.jump_chain(directions, board, coord_jump, board_size, tmp_jumped_values,
-                                             jumped_stones_tmp)
+                    tmp_moves += self.jump_chain(directions, board, coord_jump, tmp_jumped_values, jumped_stones_tmp)
                     if len(tmp_moves) == 0:
                         moves += [{"old_coord": self.coord, "new_coord": coord, "jumped_stones": jumped_stones_tmp,
                                    "jumped_values": abs(tmp_jumped_values)}]
@@ -138,8 +155,13 @@ class Stone:
         return moves
 
 
-    @staticmethod
-    def _check_if_position_on_board(coord: tuple, board_size: int):
-        in_row = coord[0] in range(board_size)
-        in_col = coord[1] in range(board_size)
-        return in_row and in_col
+def _check_if_position_on_board(coord: tuple, board_size: int):
+    """
+    checks whether coordinates are inside of board
+    :param coord:
+    :param board_size:
+    :return:
+    """
+    in_row = coord[0] in range(board_size)
+    in_col = coord[1] in range(board_size)
+    return in_row and in_col
