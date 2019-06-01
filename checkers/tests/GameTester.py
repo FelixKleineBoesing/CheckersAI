@@ -8,7 +8,7 @@ from checkers.src.agents.QLearningAgent import QLearningAgent
 from checkers.src.agents.QLearningLSTMAgent import QLearningLSTMAgent
 from checkers.src.agents.SARSAAgent import SARSAAgent
 from checkers.src.agents.SARSALSTMAgent import SARSALSTMAgent
-from checkers.src.agents.A3C import A3C
+from checkers.src.agents.A2C import A3C
 
 
 def run_random_vs_random_max():

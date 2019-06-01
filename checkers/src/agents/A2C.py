@@ -11,11 +11,11 @@ from checkers.src.ReplayBuffer import ReplayBuffer
 from checkers.src.agents.Agent import Agent
 
 
-class A3C(Agent):
+class A2C(Agent):
 
     def __init__(self, state_shape: tuple, action_shape: tuple, name: str, side: str = "up", epsilon: float = 0.5,
                  intervall_turns_train: int = 500, intervall_turns_load: int = 10000,
-                 saver_path: str = "../data/modeldata/a3c/model.ckpt"):
+                 saver_path: str = "../data/modeldata/a2c/model.ckpt"):
         #TODO finalize
         # tensorflow related stuff
         self.name = name
