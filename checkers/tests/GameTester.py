@@ -40,7 +40,7 @@ def run_random_vs_qlearning():
     board_length = 8
     action_space = (board_length, board_length, board_length, board_length)
 
-    agent_one = QLearningAgent((board_length, board_length), action_space, "qlearning", "up", 1.0, 2500, 50000)
+    agent_one = QLearningAgent((board_length, board_length), action_space, "qlearning", "up", 1.0, 2500, 100000)
     agent_two = RandomAgent((board_length, board_length), (board_length, board_length), "Two", "down")
     iterations = 50000
     for i in range(iterations):
@@ -67,8 +67,8 @@ def run_sarsa_vs_qlearning():
     board_length = 8
     action_space = (board_length, board_length, board_length, board_length)
 
-    agent_one = QLearningAgent((board_length, board_length), action_space, "qlearning", "up", 0.0, 2000000000, 5000000000)
-    agent_two = SARSAAgent((board_length, board_length), action_space, "sarsa", "down", 0.0, 20000000, 500000000)
+    agent_one = QLearningAgent((board_length, board_length), action_space, "qlearning", "up", 0.0, 2000, 100000)
+    agent_two = SARSAAgent((board_length, board_length), action_space, "sarsa", "down", 0.0, 2000, 100000)
     iterations = 100
     for i in range(iterations):
         board = Board(board_length=8)
@@ -94,7 +94,7 @@ def run_sarsa_vs_random():
     board_length = 8
     action_space = (board_length, board_length, board_length, board_length)
 
-    agent_one = SARSAAgent((board_length, board_length), action_space, "sarsa", "up", 0.0, 2000, 50000)
+    agent_one = SARSAAgent((board_length, board_length), action_space, "sarsa", "up", 0.0, 2000, 100000)
     agent_two = RandomAgent((board_length, board_length), (board_length, board_length), "Two", "down")
     iterations = 100
     for i in range(iterations):
@@ -121,7 +121,7 @@ def run_sarsa_lstm_vs_random():
     board_length = 8
     action_space = (board_length, board_length, board_length, board_length)
 
-    agent_one = SARSALSTMAgent((board_length, board_length), action_space, "sarsa_lstm", "up", 0.0, 2000, 50000,
+    agent_one = SARSALSTMAgent((board_length, board_length), action_space, "sarsa_lstm", "up", 0.0, 2000, 100000,
                                caching=False)
     agent_two = RandomAgent((board_length, board_length), (board_length, board_length), "Two", "down")
     iterations = 100
@@ -149,7 +149,7 @@ def run_q_lstm_vs_random():
     board_length = 8
     action_space = (board_length, board_length, board_length, board_length)
 
-    agent_one = QLearningLSTMAgent((board_length, board_length), action_space, "q_lstm", "up", 1.0, 2000, 50000)
+    agent_one = QLearningLSTMAgent((board_length, board_length), action_space, "q_lstm", "up", 1.0, 2000, 100000)
     agent_two = RandomAgent((board_length, board_length), (board_length, board_length), "Two", "down")
     iterations = 200000
     for i in range(iterations):
@@ -177,5 +177,5 @@ if __name__=="__main__":
     #run_random_vs_qlearning()
     #run_sarsa_vs_qlearning()
     #run_sarsa_vs_random()
-    run_sarsa_lstm_vs_random()
+    #run_sarsa_lstm_vs_random()
     #run_q_lstm_vs_random()

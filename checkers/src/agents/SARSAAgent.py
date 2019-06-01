@@ -198,10 +198,10 @@ class SARSAAgent(Agent):
         # define network
         with tf.variable_scope(name, reuse=False):
             network = keras.models.Sequential()
-            network.add(Dense(512, activation="relu", input_shape=state_shape))
+            network.add(Dense(256, activation="relu", input_shape=state_shape))
+            network.add(Dense(512, activation="relu"))
             network.add(Dense(1024, activation="relu"))
             network.add(Dense(2048, activation="relu"))
-            network.add(Dense(4096, activation="relu"))
             network.add(Dense(2048, activation="relu"))
             network.add(Flatten())
             network.add(Dense(self.number_actions, activation="linear"))
