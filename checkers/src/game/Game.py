@@ -77,6 +77,9 @@ class Game:
                 if verbose:
                     print("--------Player One moved-----------")
                     self.board.print_board()
+                number_stones_after = self.board.number_of_stones()
+                turns_without_removed_stone = turns_without_removed_stone + 1 if number_stones_after == \
+                                                                                 number_stones_before else 0
                 finished, reason, winner = self._game_finished(turns_without_removed_stone)
                 if finished:
                     if winner == self.agent_one.name:
@@ -140,10 +143,6 @@ class Game:
         self.winner = winner
         self.cum_rewards_agent_one = cum_rewards_agent_one
         self.cum_rewards_agent_two = cum_rewards_agent_one
-
-    def _do_turn(self, agent: Agent):
-
-
 
     def _get_move_and_stone(self, action: np.ndarray, action_space: ActionSpace):
         """
