@@ -49,7 +49,7 @@ class Game:
     def get_action_space(self, player_name: str):
         return self.board.get_all_moves(player_name)
 
-    def play(self, verbose:bool = True):
+    def play(self, verbose: bool = True):
         finished = False
         turns_without_removed_stone = 0
         cum_rewards_agent_one = 0
@@ -91,11 +91,11 @@ class Game:
                     reward_player_two += self.rewards.win
             self.agent_one.get_feedback(state, action, reward_player_one, next_state, finished)
             self.agent_two.get_feedback(state, action, reward_player_two, next_state, finished)
+            cum_rewards_agent_one += reward_player_one
+            cum_rewards_agent_two += reward_player_two
             if finished:
                 break
 
-            cum_rewards_agent_one += reward_player_one
-            cum_rewards_agent_two += reward_player_two
             reward_player_one, reward_player_two = 0, 0
             action_space_p_two = self.get_action_space(self.agent_two.name)
             # if player is blocked and can´t do any moves, than he has lost the game
@@ -137,6 +137,10 @@ class Game:
         self.cum_rewards_agent_one = cum_rewards_agent_one
         self.cum_rewards_agent_two = cum_rewards_agent_one
 
+    def _do_turn(self, agent: Agent):
+
+
+
     def _get_move_and_stone(self, action: np.ndarray, action_space: ActionSpace):
         """
         This helper function return the move and stone_id from action space base on the given action tuple
@@ -176,3 +180,8 @@ class Game:
         self.cum_rewards_agent_one = None
         self.cum_rewards_agent_two = None
         self.winner = None
+
+class GameWrapper:
+
+    def __init__(self):
+        pass
