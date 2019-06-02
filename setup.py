@@ -10,5 +10,5 @@ setup(name='checkers',
       author_email='felix.boesing@t-online.de',
       license='MIT',
       packages=["checkers"],
-      install_requires=['numpy', "pandas", 'tensorflow', 'keras'],
+      install_requires=['numpy', "pandas", 'tensorflow', 'keras', "simplejson", "redis", "aioredis"],
       zip_safe=False)
