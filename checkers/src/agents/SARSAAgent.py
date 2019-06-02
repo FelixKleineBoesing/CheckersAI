@@ -31,6 +31,8 @@ class SARSAAgent(Agent):
         # tensorflow related stuff
         self.name = name
         self.sess = tf.Session()
+        self._batch_size = 4096
+        self._learning_rate = 0.3
 
         # calculate number actions from actionshape
         self.number_actions = np.product(action_shape)
@@ -45,7 +47,6 @@ class SARSAAgent(Agent):
 
         self.target_network = self._configure_network(state_shape, "target_{}".format(name))
         self.network = self._configure_network(state_shape, name)
-        self._batch_size = 4096
 
         # prepare a graph for agent step
         self.state_t = tf.placeholder('float32', [None, ] + list(state_shape))
@@ -164,7 +165,7 @@ class SARSAAgent(Agent):
         # Define loss function for sgd.
         td_loss = (current_action_qvalues - reference_qvalues) ** 2
         self._td_loss = tf.reduce_mean(td_loss)
-        self._train_step = tf.train.AdamOptimizer(0.01).minimize(self._td_loss, var_list=self.weights)
+        self._train_step = tf.train.AdamOptimizer(self._learning_rate).minimize(self._td_loss, var_list=self.weights)
         self.sess.run(tf.global_variables_initializer())
 
     def train_network(self):

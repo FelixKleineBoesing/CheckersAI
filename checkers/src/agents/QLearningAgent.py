@@ -31,6 +31,8 @@ class QLearningAgent(Agent):
         # tensorflow related stuff
         self.name = name
         self.sess = tf.Session()
+        self._batch_size = 4096
+        self._learning_rate = 0.3
 
         # calculate number actions from actionshape
         self.number_actions = np.product(action_shape)
@@ -48,7 +50,6 @@ class QLearningAgent(Agent):
         self.epsilon = epsilon
         self.target_weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="target_{}".format(name))
         self.exp_buffer = ReplayBuffer(100000)
-        self._batch_size = 4096
 
         # init placeholder
         self._obs_ph = tf.placeholder(tf.float32, shape=(None,) + state_shape)
@@ -141,7 +142,7 @@ class QLearningAgent(Agent):
         # Define loss function for sgd.
         td_loss = (current_action_qvalues - reference_qvalues) ** 2
         self._td_loss = tf.reduce_mean(td_loss)
-        self._train_step = tf.train.AdamOptimizer(1e-2).minimize(self._td_loss, var_list=self.weights)
+        self._train_step = tf.train.AdamOptimizer(self._learning_rate).minimize(self._td_loss, var_list=self.weights)
         self.sess.run(tf.global_variables_initializer())
 
     def load_weigths_into_target_network(self):

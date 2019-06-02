@@ -29,6 +29,8 @@ class SARSALSTMAgent(SARSAAgent):
         # tensorflow related stuff
         self.name = name
         self.sess = tf.Session()
+        self._batch_size = 2048
+        self._learning_rate = 0.3
 
         # calculate number actions from actionshape
         self.number_actions = np.product(action_shape)
@@ -43,7 +45,7 @@ class SARSALSTMAgent(SARSAAgent):
 
         self.target_network = self._configure_network(state_shape, "target_{}".format(name))
         self.network = self._configure_network(state_shape, name)
-        self._batch_size = 2048
+
 
         # prepare a graph for agent step
         self.state_t = tf.placeholder('float32', [None, ] + list((1, state_shape[0] * state_shape[1])))

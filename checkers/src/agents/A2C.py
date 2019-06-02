@@ -20,6 +20,8 @@ class A2C(Agent):
         # tensorflow related stuff
         self.name = name
         self.sess = tf.Session()
+        self._batch_size = 4096
+        self._learning_rate = 0.3
 
         # calculate number actions from actionshape
         self.number_actions = np.product(action_shape)
@@ -37,7 +39,7 @@ class A2C(Agent):
         self.epsilon = epsilon
         self.target_weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="target_{}".format(name))
         self.exp_buffer = ReplayBuffer(100000)
-        self._batch_size = 4096
+
 
         # init placeholder
         self._obs_ph = tf.placeholder(tf.float32, shape=(None,) + (1, state_shape[0] * state_shape[1]))
@@ -170,7 +172,7 @@ class A2C(Agent):
         target_state_values = self._rewards_ph + gamma * next_state_values
         self._critic_loss = tf.reduce_mean((state_values - tf.stop_gradient(target_state_values)) ** 2)
 
-        self._train_step = tf.train.AdamOptimizer(1e-3).minimize(self._actor_loss + self._critic_loss )
+        self._train_step = tf.train.AdamOptimizer(self._learning_rate).minimize(self._actor_loss + self._critic_loss )
         self.sess.run(tf.global_variables_initializer())
 
     def _sample_batch(self, batch_size):
