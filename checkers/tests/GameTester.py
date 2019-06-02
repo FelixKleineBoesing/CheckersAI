@@ -20,7 +20,7 @@ def run_random_vs_random_max():
     iterations = 1000
     for i in range(iterations):
         board = Board(board_length=8)
-        game = Game("Test", agent_one=agent_one, agent_two=agent_two, board=board)
+        game = Game(agent_one=agent_one, agent_two=agent_two, board=board)
         game.play(verbose=False)
         winners += [game.winner]
         if (i % 5000 == 0 and i > 0) or iterations - 1 == i:
@@ -34,6 +34,8 @@ def run_random_vs_random_max():
 
             logging.info("PLayer One: {}".format(str(victories_player_one)))
             logging.info("PLayer One: {}".format(str(victories_player_two)))
+            logging.info("Mean Rewards Agent One: {}".format(agent_one.moving_average_rewards[-1]))
+            logging.info("Mean Rewards Agent Two: {}".format(agent_two.moving_average_rewards[-1]))#
 
 
 def run_random_vs_qlearning():
@@ -46,7 +48,7 @@ def run_random_vs_qlearning():
     iterations = 50000
     for i in range(iterations):
         board = Board(board_length=8)
-        game = Game("Test", agent_one=agent_one, agent_two=agent_two, board=board)
+        game = Game(agent_one=agent_one, agent_two=agent_two, board=board)
         game.play(verbose=False)
         winners += [game.winner]
         agent_one.epsilon *= 0.9999
@@ -61,6 +63,8 @@ def run_random_vs_qlearning():
 
             logging.info("PLayer One: {}".format(str(victories_player_one)))
             logging.info("PLayer One: {}".format(str(victories_player_two)))
+            logging.info("Mean Rewards Agent One: {}".format(agent_one.moving_average_rewards[-1]))
+            logging.info("Mean Rewards Agent Two: {}".format(agent_two.moving_average_rewards[-1]))
 
 
 def run_sarsa_vs_qlearning():
@@ -73,7 +77,7 @@ def run_sarsa_vs_qlearning():
     iterations = 100
     for i in range(iterations):
         board = Board(board_length=8)
-        game = Game("Test", agent_one=agent_one, agent_two=agent_two, board=board)
+        game = Game(agent_one=agent_one, agent_two=agent_two, board=board)
         game.play(verbose=False)
         winners += [game.winner]
         agent_one.epsilon *= 0.9999
@@ -88,6 +92,8 @@ def run_sarsa_vs_qlearning():
 
             logging.info("PLayer One: {}".format(str(victories_player_one)))
             logging.info("PLayer One: {}".format(str(victories_player_two)))
+            logging.info("Mean Rewards Agent One: {}".format(agent_one.moving_average_rewards[-1]))
+            logging.info("Mean Rewards Agent Two: {}".format(agent_two.moving_average_rewards[-1]))
 
 
 def run_sarsa_vs_random():
@@ -100,7 +106,7 @@ def run_sarsa_vs_random():
     iterations = 100
     for i in range(iterations):
         board = Board(board_length=8)
-        game = Game("Test", agent_one=agent_one, agent_two=agent_two, board=board)
+        game = Game(agent_one=agent_one, agent_two=agent_two, board=board)
         game.play(verbose=False)
         winners += [game.winner]
         agent_one.epsilon *= 0.9999
@@ -115,6 +121,8 @@ def run_sarsa_vs_random():
 
             logging.info("PLayer One: {}".format(str(victories_player_one)))
             logging.info("PLayer Two: {}".format(str(victories_player_two)))
+            logging.info("Mean Rewards Agent One: {}".format(agent_one.moving_average_rewards[-1]))
+            logging.info("Mean Rewards Agent Two: {}".format(agent_two.moving_average_rewards[-1]))
 
 
 def run_sarsa_lstm_vs_random():
@@ -128,7 +136,7 @@ def run_sarsa_lstm_vs_random():
     iterations = 200000
     for i in range(iterations):
         board = Board(board_length=8)
-        game = Game("Test", agent_one=agent_one, agent_two=agent_two, board=board)
+        game = Game(agent_one=agent_one, agent_two=agent_two, board=board)
         game.play(verbose=False)
         winners += [game.winner]
         agent_one.epsilon *= 0.99999
@@ -143,6 +151,8 @@ def run_sarsa_lstm_vs_random():
             logging.info("Current epsilon: {}".format(agent_one.epsilon))
             logging.info("PLayer One: {}".format(str(victories_player_one)))
             logging.info("PLayer Two: {}".format(str(victories_player_two)))
+            logging.info("Mean Rewards Agent One: {}".format(agent_one.moving_average_rewards[-1]))
+            logging.info("Mean Rewards Agent Two: {}".format(agent_two.moving_average_rewards[-1]))
 
 
 def run_q_lstm_vs_random():
@@ -155,7 +165,7 @@ def run_q_lstm_vs_random():
     iterations = 200000
     for i in range(iterations):
         board = Board(board_length=8)
-        game = Game("Test", agent_one=agent_one, agent_two=agent_two, board=board)
+        game = Game(agent_one=agent_one, agent_two=agent_two, board=board)
         game.play(verbose=False)
         winners += [game.winner]
         agent_one.epsilon *= 0.99999
@@ -170,6 +180,8 @@ def run_q_lstm_vs_random():
             logging.info("Current epsilon: {}".format(agent_one.epsilon))
             logging.info("PLayer One: {}".format(str(victories_player_one)))
             logging.info("PLayer Two: {}".format(str(victories_player_two)))
+            logging.info("Mean Rewards Agent One: {}".format(agent_one.moving_average_rewards[-1]))
+            logging.info("Mean Rewards Agent Two: {}".format(agent_two.moving_average_rewards[-1]))
 
 
 def run_a2c_vs_random():
@@ -182,7 +194,7 @@ def run_a2c_vs_random():
     iterations = 200000
     for i in range(iterations):
         board = Board(board_length=8)
-        game = Game("Test", agent_one=agent_one, agent_two=agent_two, board=board)
+        game = Game(agent_one=agent_one, agent_two=agent_two, board=board)
         game.play(verbose=False)
         winners += [game.winner]
         agent_one.epsilon *= 0.99999
