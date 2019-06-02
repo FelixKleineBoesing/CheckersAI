@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 
 from checkers.src.game.Board import Board
 from checkers.src.agents.Agent import Agent
@@ -8,13 +9,15 @@ from checkers.src.Helpers import ActionSpace
 
 
 class Game:
-
-    def __init__(self, name: str, agent_one: Agent, agent_two: Agent,
-                 board: Board, rewards: Rewards = default_rewards,
+    """
+    This class is an abstraction of the checkers game. Therefor it gets two agents, a board and a reward-function.
+    I know that rewards are not part of the original game, but the actions that may return a reward are deeply
+    integrated int game/board/stone-class
+    """
+    def __init__(self, agent_one: Agent, agent_two: Agent, board: Board, rewards: Rewards = default_rewards,
                  save_runhistory: bool = False):
         """
         Game class which takes the players, a board and a reward class
-        :param name:
         :param agent_one: agent one  that plays the game
         :param agent_two: agent two that plays the game
         :param board: object of Board class
@@ -24,7 +27,6 @@ class Game:
         assert isinstance(agent_two, Agent)
         assert isinstance(board, Board)
         assert isinstance(rewards, Rewards)
-        self.name = name
 
         # init players
         self.agent_one = agent_one
@@ -35,7 +37,7 @@ class Game:
         self.runhistory = []
 
         # init board
-        self.board = board
+        self.board = copy.deepcopy(board)
         self.board.init_stones(self.agent_one, self.agent_two)
         self.board.refresh_board()
 
@@ -165,3 +167,12 @@ class Game:
             return True, "Draw!", None
         else:
             return False, "", None
+
+    def reset(self):
+        self.runhistory = []
+        self.turns = 0
+        self.board.init_stones(self.agent_one, self.agent_two)
+        self.board.refresh_board()
+        self.cum_rewards_agent_one = None
+        self.cum_rewards_agent_two = None
+        self.winner = None
