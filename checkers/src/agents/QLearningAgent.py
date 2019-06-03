@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.keras.layers import Dense, Flatten
 import random
-from keras.layers import Dense, Flatten
 import keras
 import os
 import logging
@@ -30,7 +30,6 @@ class QLearningAgent(Agent):
 
         # tensorflow related stuff
         self.name = name
-        self.sess = tf.Session()
         self._batch_size = 4096
         self._learning_rate = 0.3
 
@@ -42,25 +41,14 @@ class QLearningAgent(Agent):
         self.target_network = self._configure_network(state_shape, "target_{}".format(name))
         self.network = self._configure_network(state_shape, self.name)
 
-        # prepare a graph for agent step
-        self.state_t = tf.placeholder('float32', [None, ] + list(state_shape))
-        self.qvalues_t = self._get_symbolic_qvalues(self.state_t)
-
         self.weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=name)
         self.epsilon = epsilon
         self.target_weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="target_{}".format(name))
         self.exp_buffer = ReplayBuffer(100000)
 
-        # init placeholder
-        self._obs_ph = tf.placeholder(tf.float32, shape=(None,) + state_shape)
-        self._actions_ph = tf.placeholder(tf.int32, shape=[None])
-        self._rewards_ph = tf.placeholder(tf.float32, shape=[None])
-        self._next_obs_ph = tf.placeholder(tf.float32, shape=(None,) + state_shape)
-        self._is_done_ph = tf.placeholder(tf.float32, shape=[None])
 
         self.saver = tf.train.Saver()
         self._saver_path = saver_path
-        self._configure_target_model()
         if os.path.isfile(self._saver_path + ".index"):
             self.saver.restore(self.sess, self._saver_path)
 
@@ -127,24 +115,6 @@ class QLearningAgent(Agent):
         qvalues = self.network(state_t)
         return qvalues
 
-    def _configure_target_model(self):
-        # placeholders that will be fed with exp_replay.sample(batch_size)
-        is_not_done = 1 - self._is_done_ph
-        gamma = 0.99
-        current_qvalues = self._get_symbolic_qvalues(self._obs_ph)
-        current_action_qvalues = tf.reduce_sum(tf.one_hot(self._actions_ph, self.number_actions) * current_qvalues, axis=1)
-
-        # compute q-values for NEXT states with target network
-        next_qvalues_target = self.target_network(self._next_obs_ph)
-        next_state_values_target = tf.reduce_max(next_qvalues_target, axis=-1)
-        reference_qvalues = self._rewards_ph + gamma * next_state_values_target * is_not_done
-
-        # Define loss function for sgd.
-        td_loss = (current_action_qvalues - reference_qvalues) ** 2
-        self._td_loss = tf.reduce_mean(td_loss)
-        self._train_step = tf.train.AdamOptimizer(self._learning_rate).minimize(self._td_loss, var_list=self.weights)
-        self.sess.run(tf.global_variables_initializer())
-
     def load_weigths_into_target_network(self):
         """ assign target_network.weights variables to their respective agent.weights values. """
         logging.debug("Transfer Weight!")
@@ -156,14 +126,12 @@ class QLearningAgent(Agent):
 
     def _sample_batch(self, batch_size):
         obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch = self.exp_buffer.sample(batch_size)
-        return {
-            self._obs_ph: obs_batch, self._actions_ph: act_batch, self._rewards_ph: reward_batch,
-            self._next_obs_ph: next_obs_batch, self._is_done_ph: is_done_batch
-        }
+        return {"obs": obs_batch, "actions": act_batch, "rewards": reward_batch,
+                "next_obs": next_obs_batch, "is_done": is_done_batch }
 
     def train_network(self):
         logging.debug("Train Network!")
-        _, loss_t = self.sess.run([self._train_step, self._td_loss], self._sample_batch(batch_size=self._batch_size))
+        _, loss_t = self._train_network(self._sample_batch(batch_size=self._batch_size))
         self.td_loss_history.append(loss_t)
         self.moving_average_loss.append(np.mean([self.td_loss_history[max([0, len(self.td_loss_history) - 100]):]]))
         ma = self.moving_average_loss[-1]
@@ -173,14 +141,32 @@ class QLearningAgent(Agent):
             self.publish_data()
 
     def _configure_network(self, state_shape: tuple, name: str):
-        # define network
-        with tf.variable_scope(name, reuse=False):
-            network = keras.models.Sequential()
-            network.add(Dense(512, activation="relu", input_shape=state_shape))
-            #network.add(Dense(1024, activation="relu"))
-            #network.add(Dense(2048, activation="relu"))
-            #network.add(Dense(4096, activation="relu"))
-            network.add(Dense(2048, activation="relu"))
-            network.add(Flatten())
-            network.add(Dense(self.number_actions, activation="linear"))
+
+        network = tf.python.keras.models.Sequential([
+            Dense(512, activation="relu", input_shape=state_shape),
+            # Dense(1024, activation="relu"),
+            # Dense(2048, activation="relu"),
+            # Dense(4096, activation="relu"),
+            Dense(2048, activation="relu"),
+            Flatten(),
+            Dense(self.number_actions, activation="linear")])
         return network
+
+    @tf.function
+    def _train_network(self, obs, actions, next_obs, rewards, is_done):
+        # placeholders that will be fed with exp_replay.sample(batch_size)
+        is_not_done = 1 - is_done
+        gamma = 0.99
+        current_qvalues = self._get_symbolic_qvalues(obs)
+        current_action_qvalues = tf.reduce_sum(tf.one_hot(actions, self.number_actions) * current_qvalues, axis=1)
+
+        # compute q-values for NEXT states with target network
+        next_qvalues_target = self.target_network(next_obs)
+        next_state_values_target = tf.reduce_max(next_qvalues_target, axis=-1)
+        reference_qvalues = rewards + gamma * next_state_values_target * is_not_done
+
+        # Define loss function for sgd.
+        td_loss = (current_action_qvalues - reference_qvalues) ** 2
+        td_loss = tf.reduce_mean(td_loss)
+        train_step = tf.optimizers.Adam(self._learning_rate).minimize(td_loss, var_list=self.weights)
+        return train_step, td_loss
