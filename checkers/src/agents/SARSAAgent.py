@@ -1,9 +1,9 @@
-import tensorflow as tf
 import numpy as np
 import random
 import os
 import logging
-from keras.layers import Dense, Flatten, Dropout
+import tensorflow as tf
+from tensorflow.keras.layers import Dense, Flatten, LSTM
 import keras
 
 from checkers.src.Helpers import ActionSpace
@@ -17,7 +17,7 @@ class SARSAAgent(Agent):
 
     def __init__(self, state_shape: tuple, action_shape: tuple, name: str, side: str = "up", epsilon: float = 0.5,
                  intervall_turns_train: int = 500, intervall_turns_load: int = 10000,
-                 saver_path: str = "../data/modeldata/sarsa/model.ckpt", caching: bool = False,
+                 save_path: str = "../data/modeldata/sarsa/model.ckpt", caching: bool = False,
                  config: Config = None, cache: RedisCache = None, channel: RedisChannel = None):
         """
                Agent which implements Q Learning
@@ -30,7 +30,6 @@ class SARSAAgent(Agent):
 
         # tensorflow related stuff
         self.name = name
-        self.sess = tf.Session()
         self._batch_size = 4096
         self._learning_rate = 0.3
 
@@ -49,27 +48,12 @@ class SARSAAgent(Agent):
         self.network = self._configure_network(state_shape, name)
 
         # prepare a graph for agent step
-        self.state_t = tf.placeholder('float32', [None, ] + list(state_shape))
-        self.qvalues_t = self._get_symbolic_qvalues(self.state_t)
-
-        self.weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=name)
         self.epsilon = epsilon
-        self.target_weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="target_{}".format(name))
         self.exp_buffer = ReplayBufferSarsa(100000)
 
-        # init placeholder
-        self._obs_ph = tf.placeholder(tf.float32, shape=(None,) + state_shape)
-        self._actions_ph = tf.placeholder(tf.int32, shape=[None])
-        self._rewards_ph = tf.placeholder(tf.float32, shape=[None])
-        self._next_obs_ph = tf.placeholder(tf.float32, shape=(None,) + state_shape)
-        self._is_done_ph = tf.placeholder(tf.float32, shape=[None])
-        self._next_actions_ph = tf.placeholder(tf.int32, shape=[None])
-
-        self.saver = tf.train.Saver()
-        self._saver_path = saver_path
-        self._configure_target_model()
-        if os.path.isfile(self._saver_path + ".index"):
-            self.saver.restore(self.sess, self._saver_path)
+        self._save_path = save_path
+        if os.path.isfile(self._save_path + ".index"):
+            self.network.load_weights(self._save_path)
 
         # copy weight to target weights
         self.load_weigths_into_target_network()

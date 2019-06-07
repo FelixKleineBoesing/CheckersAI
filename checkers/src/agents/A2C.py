@@ -1,5 +1,5 @@
 import tensorflow as tf
-from keras.layers import Dense, Flatten, LSTM, Dropout, Input
+from tensorflow.keras.layers import Dense, Flatten, LSTM, Input
 import keras
 import numpy as np
 import os
@@ -15,11 +15,10 @@ class A2C(Agent):
 
     def __init__(self, state_shape: tuple, action_shape: tuple, name: str, side: str = "up", epsilon: float = 0.5,
                  intervall_turns_train: int = 500, intervall_turns_load: int = 10000,
-                 saver_path: str = "../data/modeldata/a2c/model.ckpt"):
+                 save_path: str = "../data/modeldata/a2c/model.ckpt"):
         #TODO finalize
         # tensorflow related stuff
         self.name = name
-        self.sess = tf.Session()
         self._batch_size = 4096
         self._learning_rate = 0.3
 
@@ -31,28 +30,12 @@ class A2C(Agent):
         self.target_network = self._configure_network(state_shape, "target_{}".format(name))
         self.network = self._configure_network(state_shape, self.name)
 
-        # prepare a graph for agent step
-        self.state_t = tf.placeholder('float32', [None, ] + list((1, state_shape[0] * state_shape[1])))
-        self.qvalues_t = self._get_symbolic_qvalues(self.state_t)
-
-        self.weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=name)
         self.epsilon = epsilon
-        self.target_weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="target_{}".format(name))
         self.exp_buffer = ReplayBuffer(100000)
 
-
-        # init placeholder
-        self._obs_ph = tf.placeholder(tf.float32, shape=(None,) + (1, state_shape[0] * state_shape[1]))
-        self._actions_ph = tf.placeholder(tf.int32, shape=[None])
-        self._rewards_ph = tf.placeholder(tf.float32, shape=[None])
-        self._next_obs_ph = tf.placeholder(tf.float32, shape=(None,) + (1, state_shape[0] * state_shape[1]))
-        self._is_done_ph = tf.placeholder(tf.float32, shape=[None])
-
-        self.saver = tf.train.Saver()
-        self._saver_path = saver_path
-        self._configure_target_model()
-        if os.path.isfile(self._saver_path + ".index"):
-            self.saver.restore(self.sess, self._saver_path)
+        self._save_path = save_path
+        if os.path.isfile(self._save_path + ".index"):
+            self.network.load_weights(self._save_path)
 
         # copy weight to target weights
         self.load_weigths_into_target_network()
@@ -61,19 +44,17 @@ class A2C(Agent):
 
     def _configure_network(self, state_shape: tuple, name: str):
         # define network
-        with tf.variable_scope(name, reuse=False):
-            inputs = Input(shape=(1, 64))
-            x = LSTM(512, activation="relu", input_shape=(1, 64), return_sequences=True)(inputs)
-            #x = LSTM(1024, activation="relu", return_sequences=True)(x)
-            #x = LSTM(2048, activation="relu", return_sequences=True)(x)
-            #x = Dense(4096, activation="relu")(x)
-            x = Dense(2048, activation="relu")(x)
-            x = Flatten()(x)
+        inputs = Input(shape=(1, 64))
+        x = LSTM(512, activation="relu", input_shape=(1, 64), return_sequences=True)(inputs)
+        #x = LSTM(1024, activation="relu", return_sequences=True)(x)
+        #x = LSTM(2048, activation="relu", return_sequences=True)(x)
+        #x = Dense(4096, activation="relu")(x)
+        x = Dense(2048, activation="relu")(x)
+        x = Flatten()(x)
 
-            logits = Dense(self.number_actions, activation="linear")(x)
-            state_value = Dense(1, activation="linear")(x)
-            network = keras.models.Model(inputs=inputs, outputs=[logits, state_value])
-
+        logits = Dense(self.number_actions, activation="linear")(x)
+        state_value = Dense(1, activation="linear")(x)
+        network = tf.keras.models.Sequential(inputs=inputs, outputs=[logits, state_value])
         return network
 
     def decision(self, state_space: np.ndarray, action_space: ActionSpace):
@@ -120,11 +101,8 @@ class A2C(Agent):
     def load_weigths_into_target_network(self):
         """ assign target_network.weights variables to their respective agent.weights values. """
         logging.debug("Transfer Weight!")
-        assigns = []
-        for w_agent, w_target in zip(self.weights, self.target_weights):
-            assigns.append(tf.assign(w_target, w_agent, validate_shape=True))
-        self.sess.run(assigns)
-        self.saver.save(self.sess, self._saver_path)
+        self.network.save_weights(self._save_path)
+        self.target_network.load_weights(self._save_path)
 
     def get_feedback(self, state, action, reward, next_state, finished):
         action_number = np.unravel_index(np.ravel_multi_index(action, self.action_shape), (4096,))[0]
@@ -153,23 +131,24 @@ class A2C(Agent):
         return self.sess.run(self.qvalues_t, {self.state_t:
                                                   state_t[0].reshape(1, 1, state_t[0].shape[0] * state_t[0].shape[1])})
 
-    def _configure_target_model(self):
+    @tf.function
+    def _train_network(self, obs, actions, next_obs, rewards, is_done):
         # placeholders that will be fed with exp_replay.sample(batch_size)
-        is_not_done = 1 - self._is_done_ph
+        is_not_done = 1 - is_done
         gamma = 0.99
-        qvalues, state_values = self._get_symbolic_qvalues(self._obs_ph)
+        qvalues, state_values = self._get_symbolic_qvalues(obs)
 
-        next_qvalues, next_state_values = self.target_network(self._next_obs_ph)
+        next_qvalues, next_state_values = self.target_network(next_obs)
         next_state_values = next_state_values * is_not_done
         probs = tf.nn.softmax(qvalues)
         logprobs = tf.nn.log_softmax(qvalues)
 
-        logp_actions = tf.reduce_sum(logprobs * tf.one_hot(self._actions_ph, self.number_actions), axis=-1)
-        advantage = self._rewards_ph + gamma * next_state_values - state_values
+        logp_actions = tf.reduce_sum(logprobs * tf.one_hot(actions, self.number_actions), axis=-1)
+        advantage = rewards + gamma * next_state_values - state_values
         self._entropy = -tf.reduce_sum(probs * logprobs, 1, name="entropy")
         self._actor_loss = - tf.reduce_mean(logp_actions * tf.stop_gradient(advantage)) - 0.001 * \
                            tf.reduce_mean(self._entropy)
-        target_state_values = self._rewards_ph + gamma * next_state_values
+        target_state_values = rewards + gamma * next_state_values
         self._critic_loss = tf.reduce_mean((state_values - tf.stop_gradient(target_state_values)) ** 2)
 
         self._train_step = tf.train.AdamOptimizer(self._learning_rate).minimize(self._actor_loss + self._critic_loss )
@@ -178,8 +157,7 @@ class A2C(Agent):
     def _sample_batch(self, batch_size):
         obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch = self.exp_buffer.sample(batch_size)
         obs_batch = obs_batch.reshape(obs_batch.shape[0], 1, obs_batch.shape[1] * obs_batch.shape[2])
-        next_obs_batch = next_obs_batch.reshape(next_obs_batch.shape[0], 1, next_obs_batch.shape[1] * next_obs_batch.shape[2])
-        return {
-            self._obs_ph: obs_batch, self._actions_ph: act_batch, self._rewards_ph: reward_batch,
-            self._next_obs_ph: next_obs_batch, self._is_done_ph: is_done_batch
-        }
+        next_obs_batch = next_obs_batch.reshape(next_obs_batch.shape[0], 1, next_obs_batch.shape[1] *
+                                                next_obs_batch.shape[2])
+        return {"obs": obs_batch, "actions": act_batch, "rewards": reward_batch,
+                "next_obs": next_obs_batch, "is_done": is_done_batch }

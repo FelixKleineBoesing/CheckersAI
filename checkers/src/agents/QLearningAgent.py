@@ -2,7 +2,6 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.layers import Dense, Flatten
 import random
-import keras
 import os
 import logging
 
@@ -17,7 +16,7 @@ class QLearningAgent(Agent):
 
     def __init__(self, state_shape: tuple, action_shape: tuple, name: str, side: str = "up", epsilon: float = 0.5,
                  intervall_turns_train: int = 500, intervall_turns_load: int = 10000,
-                 saver_path: str = "../data/modeldata/q/model.ckpt", caching: bool = False,
+                 save_path: str = "../data/modeldata/q/model.ckpt", caching: bool = False,
                  config: Config = None, cache: RedisCache = None, channel: RedisChannel = None):
         """
         Agent which implements Q Learning
@@ -41,15 +40,12 @@ class QLearningAgent(Agent):
         self.network = self._configure_network(state_shape, self.name)
         self.target_network = self._configure_network(state_shape, "target_{}".format(name))
 
-        #self.weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=name)
         self.epsilon = epsilon
-        #self.target_weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="target_{}".format(name))
         self.exp_buffer = ReplayBuffer(100000)
 
-
-        self._saver_path = saver_path
-        if os.path.isfile(self._saver_path + ".index"):
-            self.network.load_weights(self._saver_path)
+        self._save_path = save_path
+        if os.path.isfile(self._save_path + ".index"):
+            self.network.load_weights(self._save_path)
 
         # copy weight to target weights
         self.load_weigths_into_target_network()
@@ -64,7 +60,7 @@ class QLearningAgent(Agent):
         :param action_space:
         :return:
         """
-        #preprocess state space
+        # preprocess state space
         # normalizing state space between zero and one
         state_space = (state_space.astype('float32') - np.min(state_space)) / (np.max(state_space) - np.min(state_space))
 
@@ -113,8 +109,8 @@ class QLearningAgent(Agent):
     def load_weigths_into_target_network(self):
         """ assign target_network.weights variables to their respective agent.weights values. """
         logging.debug("Transfer Weight!")
-        self.network.save_weights(self._saver_path)
-        self.target_network.load_weights(self._saver_path)
+        self.network.save_weights(self._save_path)
+        self.target_network.load_weights(self._save_path)
 
     def _sample_batch(self, batch_size):
         obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch = self.exp_buffer.sample(batch_size)
