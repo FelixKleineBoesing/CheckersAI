@@ -14,7 +14,7 @@ class Board:
         self.board_length = board_length
         self.stones = None
         # 0 is no stone placed
-        self.board = [[0 for x in range(self.board_length)] for y in range(self.board_length)]
+        self.board = [[0 for _ in range(self.board_length)] for _ in range(self.board_length)]
         self.board = np.array(self.board)
         self.id_store = np.array(self.board)
 
