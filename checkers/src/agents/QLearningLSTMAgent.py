@@ -21,7 +21,6 @@ class QLearningLSTMAgent(QLearningAgent):
         :param side: is he going to start at the top or at the bottom?
         :param epsilon: exploration factor
         """
-
         super().__init__(state_shape, action_shape, name, side, epsilon, intervall_turns_train, intervall_turns_load,
                          save_path, caching, config, cache, channel)
         self.exp_buffer = EpisodeBuffer(5000)

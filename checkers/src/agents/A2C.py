@@ -21,6 +21,7 @@ class A2C(Agent):
         self.name = name
         self._batch_size = 4096
         self._learning_rate = 0.3
+        self._gamma = 0.99
 
         # calculate number actions from actionshape
         self.number_actions = np.product(action_shape)
@@ -65,7 +66,7 @@ class A2C(Agent):
         :param action_space:
         :return:
         """
-        #preprocess state space
+        # preprocess state space
         # normalizing state space between zero and one
         state_space = (state_space.astype('float32') - np.min(state_space)) / (np.max(state_space) - np.min(state_space))
 
@@ -134,25 +135,23 @@ class A2C(Agent):
     @tf.function
     def _train_network(self, obs, actions, next_obs, rewards, is_done):
         # placeholders that will be fed with exp_replay.sample(batch_size)
-        is_not_done = 1 - is_done
-        gamma = 0.99
-        qvalues, state_values = self._get_symbolic_qvalues(obs)
 
+        qvalues, state_values = self._get_symbolic_qvalues(obs)
         next_qvalues, next_state_values = self.target_network(next_obs)
-        next_state_values = next_state_values * is_not_done
+        next_state_values = next_state_values * (1 - is_done)
         probs = tf.nn.softmax(qvalues)
         logprobs = tf.nn.log_softmax(qvalues)
 
         logp_actions = tf.reduce_sum(logprobs * tf.one_hot(actions, self.number_actions), axis=-1)
-        advantage = rewards + gamma * next_state_values - state_values
-        self._entropy = -tf.reduce_sum(probs * logprobs, 1, name="entropy")
-        self._actor_loss = - tf.reduce_mean(logp_actions * tf.stop_gradient(advantage)) - 0.001 * \
-                           tf.reduce_mean(self._entropy)
-        target_state_values = rewards + gamma * next_state_values
-        self._critic_loss = tf.reduce_mean((state_values - tf.stop_gradient(target_state_values)) ** 2)
+        advantage = rewards + self._gamma * next_state_values - state_values
+        entropy = -tf.reduce_sum(probs * logprobs, 1, name="entropy")
+        actor_loss = - tf.reduce_mean(logp_actions * tf.stop_gradient(advantage)) - 0.001 * \
+                           tf.reduce_mean(entropy)
+        target_state_values = rewards + self._gamma * next_state_values
+        critic_loss = tf.reduce_mean((state_values - tf.stop_gradient(target_state_values)) ** 2)
 
-        self._train_step = tf.train.AdamOptimizer(self._learning_rate).minimize(self._actor_loss + self._critic_loss )
-        self.sess.run(tf.global_variables_initializer())
+        train_step = tf.optimizers.Adam(self._learning_rate).minimize(actor_loss + critic_loss)
+        return train_step,
 
     def _sample_batch(self, batch_size):
         obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch = self.exp_buffer.sample(batch_size)

@@ -31,6 +31,7 @@ class QLearningAgent(Agent):
         self.name = name
         self._batch_size = 4096
         self._learning_rate = 0.3
+        self._gamma = 0.99
 
         # calculate number actions from actionshape
         self.number_actions = np.product(action_shape)
@@ -115,7 +116,7 @@ class QLearningAgent(Agent):
     def _sample_batch(self, batch_size):
         obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch = self.exp_buffer.sample(batch_size)
         return {"obs": obs_batch, "actions": act_batch, "rewards": reward_batch,
-                "next_obs": next_obs_batch, "is_done": is_done_batch }
+                "next_obs": next_obs_batch, "is_done": is_done_batch}
 
     def train_network(self):
         logging.debug("Train Network!")
@@ -142,19 +143,16 @@ class QLearningAgent(Agent):
 
     @tf.function
     def _train_network(self, obs, actions, next_obs, rewards, is_done):
-        # placeholders that will be fed with exp_replay.sample(batch_size)
-        is_not_done = 1 - is_done
-        gamma = 0.99
         current_qvalues = self._get_qvalues(obs)
         current_action_qvalues = tf.reduce_sum(tf.one_hot(actions, self.number_actions) * current_qvalues, axis=1)
 
         # compute q-values for NEXT states with target network
         next_qvalues_target = self.target_network(next_obs)
         next_state_values_target = tf.reduce_max(next_qvalues_target, axis=-1)
-        reference_qvalues = rewards + gamma * next_state_values_target * is_not_done
+        reference_qvalues = rewards + self._gamma * next_state_values_target * (1 - is_done)
 
         # Define loss function for sgd.
-        td_loss = (current_action_qvalues - reference_qvalues) ** 2
-        td_loss = tf.reduce_mean(td_loss)
+        td_loss = tf.reduce_mean(current_action_qvalues - reference_qvalues) ** 2
+        # TODO deliver var_list in ada optimizer
         train_step = tf.optimizers.Adam(self._learning_rate).minimize(td_loss)
         return train_step, td_loss

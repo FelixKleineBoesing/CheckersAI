@@ -47,7 +47,6 @@ class SARSALSTMAgent(SARSAAgent):
 
         self.epsilon = epsilon
 
-        self._configure_target_model()
         self._save_path = save_path
         if os.path.isfile(self._save_path + ".index"):
             self.network.load_weights(self._save_path)
@@ -92,4 +91,3 @@ class SARSALSTMAgent(SARSAAgent):
         next_obs_batch = next_obs_batch.reshape(next_obs_batch.shape[0], 1, next_obs_batch.shape[1] * next_obs_batch.shape[2])
         return {"obs": obs_batch, "actions": act_batch, "rewards": reward_batch,
                 "next_obs": next_obs_batch, "is_done": is_done_batch , "next_actions": next_act_batch}
-    
