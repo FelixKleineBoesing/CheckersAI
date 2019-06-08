@@ -115,28 +115,22 @@ class A2C(Agent):
 
     def train_network(self):
         logging.debug("Train Network!")
-        _, loss_t = self.sess.run([self._train_step, self._entropy], self._sample_batch(batch_size=self._batch_size))
+        _, loss_t = self._train_network(self._sample_batch(batch_size=self._batch_size))
         self.td_loss_history.append(loss_t)
         self.moving_average_loss.append(np.mean([self.td_loss_history[max([0, len(self.td_loss_history) - 100]):]]))
         ma = self.moving_average_loss[-1]
         relative_ma = self.moving_average_loss[-1] / self._batch_size
         logging.info("Loss: {},     relative Loss: {}".format(ma, relative_ma))
 
-    def _get_symbolic_qvalues(self, state_t):
-        """takes agent's observation, returns qvalues. Both are tf Tensors"""
-        qvalues = self.network(state_t)
-        return qvalues
-
     def _get_qvalues(self, state_t):
         """Same as symbolic step except it operates on numpy arrays"""
-        return self.sess.run(self.qvalues_t, {self.state_t:
-                                                  state_t[0].reshape(1, 1, state_t[0].shape[0] * state_t[0].shape[1])})
+        return self.network(state_t[0].reshape(1, 1, state_t[0].shape[0] * state_t[0].shape[1]))
 
     @tf.function
     def _train_network(self, obs, actions, next_obs, rewards, is_done):
         # placeholders that will be fed with exp_replay.sample(batch_size)
 
-        qvalues, state_values = self._get_symbolic_qvalues(obs)
+        qvalues, state_values = self._get_qvalues(obs)
         next_qvalues, next_state_values = self.target_network(next_obs)
         next_state_values = next_state_values * (1 - is_done)
         probs = tf.nn.softmax(qvalues)
@@ -159,4 +153,4 @@ class A2C(Agent):
         next_obs_batch = next_obs_batch.reshape(next_obs_batch.shape[0], 1, next_obs_batch.shape[1] *
                                                 next_obs_batch.shape[2])
         return {"obs": obs_batch, "actions": act_batch, "rewards": reward_batch,
-                "next_obs": next_obs_batch, "is_done": is_done_batch }
+                "next_obs": next_obs_batch, "is_done": is_done_batch}

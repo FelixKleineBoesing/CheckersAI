@@ -69,7 +69,7 @@ class SARSAAgent(Agent):
         :param action_space:
         :return:
         """
-        #preprocess state space
+        # preprocess state space
         # normalizing state space between zero and one
         state_space = (state_space.astype('float32') - np.min(state_space)) / (np.max(state_space) - np.min(state_space))
 
@@ -79,7 +79,7 @@ class SARSAAgent(Agent):
 
     def _get_qvalues(self, state_t):
         """Same as symbolic step except it operates on numpy arrays"""
-        return self.sess.run(self.qvalues_t, {self.state_t: state_t})
+        return self.network(state_t)
 
     def _sample_actions(self, qvalues: np.ndarray, action_space: ActionSpace):
         """
@@ -147,14 +147,12 @@ class SARSAAgent(Agent):
 
         reference_qvalues = rewards + self._gamma * (next_state_values_target * (1- is_done))
 
-        # Define loss function for sgd.
-        td_loss = (current_action_qvalues - reference_qvalues) ** 2
-        self._td_loss = tf.reduce_mean(td_loss)
-        self._train_step = tf.train.AdamOptimizer(self._learning_rate).minimize(self._td_loss, var_list=self.weights)
-        self.sess.run(tf.global_variables_initializer())
+        td_loss = tf.reduce_mean((current_action_qvalues - reference_qvalues) ** 2)
+        train_step = tf.optimizers.Adam(self._learning_rate).minimize(td_loss)
+        return train_step, td_loss
 
     def train_network(self):
-        _, loss_t = self.sess.run([self._train_step, self._td_loss], self._sample_batch(batch_size=self._batch_size))
+        _, loss_t = self._train_network(self._sample_batch(batch_size=self._batch_size))
         self.td_loss_history.append(loss_t)
         self.moving_average_loss.append(np.mean([self.td_loss_history[max([0, len(self.td_loss_history) - 100]):]]))
         ma = self.moving_average_loss[-1]
@@ -166,11 +164,8 @@ class SARSAAgent(Agent):
     def load_weigths_into_target_network(self):
         """ assign target_network.weights variables to their respective agent.weights values. """
         logging.debug("Transfer Weight!")
-        assigns = []
-        for w_agent, w_target in zip(self.weights, self.target_weights):
-            assigns.append(tf.assign(w_target, w_agent, validate_shape=True))
-        self.sess.run(assigns)
-        self.saver.save(self.sess, self._saver_path)
+        self.network.save_weights(self._save_path)
+        self.target_network.load_weights(self._save_path)
 
     def _sample_batch(self, batch_size):
         obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch, next_act_batch = \

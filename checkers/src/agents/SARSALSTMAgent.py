@@ -74,15 +74,9 @@ class SARSALSTMAgent(SARSAAgent):
 
         return network
 
-    def _get_symbolic_qvalues(self, state_t):
-        """takes agent's observation, returns qvalues. Both are tf Tensors"""
-        qvalues = self.network(state_t)
-        return qvalues
-
     def _get_qvalues(self, state_t):
         """Same as symbolic step except it operates on numpy arrays"""
-        return self.sess.run(self.qvalues_t, {self.state_t:
-                                                  state_t[0].reshape(1, 1, state_t[0].shape[0] * state_t[0].shape[1])})
+        return self.network(state_t[0].reshape(1, 1, state_t[0].shape[0] * state_t[0].shape[1]))
 
     def _sample_batch(self, batch_size):
         obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch, next_act_batch = \
