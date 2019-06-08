@@ -57,7 +57,7 @@ class SARSAAgent(Agent):
             self.network.load_weights(self._save_path)
 
         # copy weight to target weights
-        self.load_weigths_into_target_network()
+        self.load_weights_into_target_network()
 
         super().__init__(state_shape, action_shape, name, side, config, caching, cache, channel)
 
@@ -71,7 +71,8 @@ class SARSAAgent(Agent):
         """
         # preprocess state space
         # normalizing state space between zero and one
-        state_space = (state_space.astype('float32') - np.min(state_space)) / (np.max(state_space) - np.min(state_space))
+        state_space = (state_space.astype('float32') - np.min(state_space)) / (np.max(state_space) -
+                                                                               np.min(state_space))
 
         qvalues = self._get_qvalues([state_space])
         decision = self._sample_actions(qvalues, action_space)
@@ -116,7 +117,7 @@ class SARSAAgent(Agent):
         if self.number_turns % self._intervall_actions_train == 0 and self.number_turns > 1:
             self.train_network()
         if self.number_turns % self._intervall_turns_load == 0 and self.number_turns > 1:
-            self.load_weigths_into_target_network()
+            self.load_weights_into_target_network()
 
         self._buffer_action = action
         self._buffer_state = state
@@ -148,7 +149,8 @@ class SARSAAgent(Agent):
         reference_qvalues = rewards + self._gamma * (next_state_values_target * (1- is_done))
 
         td_loss = tf.reduce_mean((current_action_qvalues - reference_qvalues) ** 2)
-        train_step = tf.optimizers.Adam(self._learning_rate).minimize(td_loss)
+        train_step = tf.optimizers.Adam(self._learning_rate).minimize(td_loss,
+                                                                      var_list=self.network.trainable_variables)
         return train_step, td_loss
 
     def train_network(self):
@@ -161,7 +163,7 @@ class SARSAAgent(Agent):
         if self.redis_cache is not None:
             self.publish_data()
 
-    def load_weigths_into_target_network(self):
+    def load_weights_into_target_network(self):
         """ assign target_network.weights variables to their respective agent.weights values. """
         logging.debug("Transfer Weight!")
         self.network.save_weights(self._save_path)

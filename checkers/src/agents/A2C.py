@@ -39,7 +39,7 @@ class A2C(Agent):
             self.network.load_weights(self._save_path)
 
         # copy weight to target weights
-        self.load_weigths_into_target_network()
+        self.load_weights_into_target_network()
 
         super().__init__(state_shape, action_shape, name, side)
 
@@ -99,7 +99,7 @@ class A2C(Agent):
 
         return decision
 
-    def load_weigths_into_target_network(self):
+    def load_weights_into_target_network(self):
         """ assign target_network.weights variables to their respective agent.weights values. """
         logging.debug("Transfer Weight!")
         self.network.save_weights(self._save_path)
@@ -111,7 +111,7 @@ class A2C(Agent):
         if self.number_turns % self._intervall_actions_train == 0 and self.number_turns > 1:
             self.train_network()
         if self.number_turns % self._intervall_turns_load == 0 and self.number_turns > 1:
-            self.load_weigths_into_target_network()
+            self.load_weights_into_target_network()
 
     def train_network(self):
         logging.debug("Train Network!")
@@ -144,7 +144,8 @@ class A2C(Agent):
         target_state_values = rewards + self._gamma * next_state_values
         critic_loss = tf.reduce_mean((state_values - tf.stop_gradient(target_state_values)) ** 2)
 
-        train_step = tf.optimizers.Adam(self._learning_rate).minimize(actor_loss + critic_loss)
+        train_step = tf.optimizers.Adam(self._learning_rate).minimize(actor_loss + critic_loss,
+                                                                      var_list=self.network.trainable_variables)
         return train_step,
 
     def _sample_batch(self, batch_size):

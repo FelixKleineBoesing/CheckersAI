@@ -52,7 +52,7 @@ class SARSALSTMAgent(SARSAAgent):
             self.network.load_weights(self._save_path)
 
         # copy weight to target weights
-        self.load_weigths_into_target_network()
+        self.load_weights_into_target_network()
         self.exp_buffer = EpisodeBuffer(5000)
         self.side = side
         self.state_shape = state_shape

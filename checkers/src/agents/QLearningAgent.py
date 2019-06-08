@@ -154,5 +154,6 @@ class QLearningAgent(Agent):
         # Define loss function for sgd.
         td_loss = tf.reduce_mean(current_action_qvalues - reference_qvalues) ** 2
         # TODO deliver var_list in ada optimizer
-        train_step = tf.optimizers.Adam(self._learning_rate).minimize(td_loss)
+        train_step = tf.optimizers.Adam(self._learning_rate).minimize(td_loss,
+                                                                      var_list=self.network.trainable_variables)
         return train_step, td_loss
