@@ -1,6 +1,6 @@
 numpy
 pandas
-tensorflow
+tensorflow==v2.0.0-beta0
 keras
 waitress
 flask
