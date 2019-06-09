@@ -32,8 +32,8 @@ def run_random_vs_random_max():
                 if winner == "Two":
                     victories_player_two += 1
 
-            logging.info("PLayer One: {}".format(str(victories_player_one)))
-            logging.info("PLayer One: {}".format(str(victories_player_two)))
+            logging.info("Player One: {}".format(str(victories_player_one)))
+            logging.info("Player Two: {}".format(str(victories_player_two)))
             logging.info("Mean Rewards Agent One: {}".format(agent_one.moving_average_rewards[-1]))
             logging.info("Mean Rewards Agent Two: {}".format(agent_two.moving_average_rewards[-1]))#
 
@@ -61,8 +61,8 @@ def run_random_vs_qlearning():
                 if winner == "Two":
                     victories_player_two += 1
 
-            logging.info("PLayer One: {}".format(str(victories_player_one)))
-            logging.info("PLayer One: {}".format(str(victories_player_two)))
+            logging.info("Player One: {}".format(str(victories_player_one)))
+            logging.info("Player Two: {}".format(str(victories_player_two)))
             logging.info("Mean Rewards Agent One: {}".format(agent_one.moving_average_rewards[-1]))
             logging.info("Mean Rewards Agent Two: {}".format(agent_two.moving_average_rewards[-1]))
 
@@ -90,8 +90,8 @@ def run_sarsa_vs_qlearning():
                 if winner == "sarsa":
                     victories_player_two += 1
 
-            logging.info("PLayer One: {}".format(str(victories_player_one)))
-            logging.info("PLayer One: {}".format(str(victories_player_two)))
+            logging.info("Player One: {}".format(str(victories_player_one)))
+            logging.info("Player Two: {}".format(str(victories_player_two)))
             logging.info("Mean Rewards Agent One: {}".format(agent_one.moving_average_rewards[-1]))
             logging.info("Mean Rewards Agent Two: {}".format(agent_two.moving_average_rewards[-1]))
 
@@ -119,8 +119,8 @@ def run_sarsa_vs_random():
                 if winner == "Two":
                     victories_player_two += 1
 
-            logging.info("PLayer One: {}".format(str(victories_player_one)))
-            logging.info("PLayer Two: {}".format(str(victories_player_two)))
+            logging.info("Player One: {}".format(str(victories_player_one)))
+            logging.info("Player Two: {}".format(str(victories_player_two)))
             logging.info("Mean Rewards Agent One: {}".format(agent_one.moving_average_rewards[-1]))
             logging.info("Mean Rewards Agent Two: {}".format(agent_two.moving_average_rewards[-1]))
 
@@ -149,8 +149,8 @@ def run_sarsa_lstm_vs_random():
                 if winner == "Two":
                     victories_player_two += 1
             logging.info("Current epsilon: {}".format(agent_one.epsilon))
-            logging.info("PLayer One: {}".format(str(victories_player_one)))
-            logging.info("PLayer Two: {}".format(str(victories_player_two)))
+            logging.info("Player One: {}".format(str(victories_player_one)))
+            logging.info("Player Two: {}".format(str(victories_player_two)))
             logging.info("Mean Rewards Agent One: {}".format(agent_one.moving_average_rewards[-1]))
             logging.info("Mean Rewards Agent Two: {}".format(agent_two.moving_average_rewards[-1]))
 
@@ -178,8 +178,8 @@ def run_q_lstm_vs_random():
                 if winner == "Two":
                     victories_player_two += 1
             logging.info("Current epsilon: {}".format(agent_one.epsilon))
-            logging.info("PLayer One: {}".format(str(victories_player_one)))
-            logging.info("PLayer Two: {}".format(str(victories_player_two)))
+            logging.info("Player One: {}".format(str(victories_player_one)))
+            logging.info("Player Two: {}".format(str(victories_player_two)))
             logging.info("Mean Rewards Agent One: {}".format(agent_one.moving_average_rewards[-1]))
             logging.info("Mean Rewards Agent Two: {}".format(agent_two.moving_average_rewards[-1]))
 
@@ -207,8 +207,8 @@ def run_a2c_vs_random():
                 if winner == "Two":
                     victories_player_two += 1
             logging.info("Current epsilon: {}".format(agent_one.epsilon))
-            logging.info("PLayer One: {}".format(str(victories_player_one)))
-            logging.info("PLayer Two: {}".format(str(victories_player_two)))
+            logging.info("Player One: {}".format(str(victories_player_one)))
+            logging.info("Player Two: {}".format(str(victories_player_two)))
             logging.info("Mean Rewards Agent One: {}".format(agent_one.moving_average_rewards[-1]))
             logging.info("Mean Rewards Agent Two: {}".format(agent_two.moving_average_rewards[-1]))
 

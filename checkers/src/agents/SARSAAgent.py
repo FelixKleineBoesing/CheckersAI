@@ -105,7 +105,7 @@ class SARSAAgent(Agent):
 
         return decision
 
-    def get_feedback(self, state, action, reward, next_state, finished):
+    def _get_feedback_inner(self, state, action, reward, next_state, finished):
         state = state.reshape(1, multiply(*state.shape))
         next_state = state.reshape(1, multiply(*next_state.shape))
         if self._buffer_action is not None:
@@ -137,20 +137,30 @@ class SARSAAgent(Agent):
 
     @tf.function
     def _train_network(self, obs, actions, next_obs, rewards, is_done, next_actions):
-        current_qvalues = self._get_symbolic_qvalues(obs)
-        current_action_qvalues = tf.reduce_sum(tf.one_hot(actions, self.number_actions) * current_qvalues, axis=1)
 
-        # compute q-values for NEXT states with target network
-        next_qvalues_target = self.target_network(next_obs)
-        next_state_values_target = tf.reduce_sum(tf.one_hot(next_actions, self.number_actions) *
-                                                 next_qvalues_target, axis=1)
+        # Decorator autographs the function
+        @tf.function
+        def loss_func():
+            current_qvalues = self._get_symbolic_qvalues(obs)
+            current_action_qvalues = tf.reduce_sum(tf.one_hot(actions, self.number_actions) * current_qvalues, axis=1)
 
-        reference_qvalues = rewards + self._gamma * (next_state_values_target * (1- is_done))
+            # compute q-values for NEXT states with target network
+            next_qvalues_target = self.target_network(next_obs)
+            next_state_values_target = tf.reduce_sum(tf.one_hot(next_actions, self.number_actions) *
+                                                     next_qvalues_target, axis=1)
 
-        td_loss = tf.reduce_mean((current_action_qvalues - reference_qvalues) ** 2)
-        train_step = tf.optimizers.Adam(self._learning_rate).minimize(td_loss,
-                                                                      var_list=self.network.trainable_variables)
-        return train_step, td_loss
+            reference_qvalues = rewards + self._gamma * (next_state_values_target * (1 - is_done))
+
+            td_loss = tf.reduce_mean((current_action_qvalues - reference_qvalues) ** 2)
+            return td_loss
+
+        with tf.GradientTape() as tape:
+            loss = loss_func()
+
+        grads = tape.gradient(loss, self.network.trainable_variables)
+        self.optimizer.apply_gradients(zip(grads, self.network.trainable_variables))
+
+        return loss
 
     def train_network(self):
         _, loss_t = self._train_network(self._sample_batch(batch_size=self._batch_size))
@@ -187,4 +197,5 @@ class SARSAAgent(Agent):
             Dense(2048, activation="relu"),
             Flatten(),
             Dense(self.number_actions, activation="linear")])
+        self.optimizer = tf.optimizers.Adam(self._learning_rate)
         return network

@@ -71,7 +71,7 @@ class SARSALSTMAgent(SARSAAgent):
             Dense(1024, activation="relu"),
             Flatten(),
             Dense(self.number_actions, activation="linear")])
-
+        self.optimizer = tf.optimizers.Adam(self._learning_rate)
         return network
 
     def _get_qvalues(self, state_t):

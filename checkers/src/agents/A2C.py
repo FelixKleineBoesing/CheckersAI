@@ -55,6 +55,7 @@ class A2C(Agent):
         logits = Dense(self.number_actions, activation="linear")(x)
         state_value = Dense(1, activation="linear")(x)
         network = tf.keras.models.Sequential(inputs=inputs, outputs=[logits, state_value])
+        self.optimizer = tf.optimizers.Adam(self._learning_rate)
         return network
 
     def decision(self, state_space: np.ndarray, action_space: ActionSpace):
@@ -104,7 +105,7 @@ class A2C(Agent):
         self.network.save_weights(self._save_path)
         self.target_network.load_weights(self._save_path)
 
-    def get_feedback(self, state, action, reward, next_state, finished):
+    def _get_feedback_inner(self, state, action, reward, next_state, finished):
         state = state.reshape(1, multiply(*state.shape))
         next_state = state.reshape(1, multiply(*next_state.shape))
         action_number = np.unravel_index(np.ravel_multi_index(action, self.action_shape), (4096,))[0]
@@ -127,27 +128,33 @@ class A2C(Agent):
         """Same as symbolic step except it operates on numpy arrays"""
         return self.network(state_t[0].reshape(1, 1, state_t[0].shape[0] * state_t[0].shape[1]))
 
-    @tf.function
     def _train_network(self, obs, actions, next_obs, rewards, is_done):
-        # placeholders that will be fed with exp_replay.sample(batch_size)
 
-        qvalues, state_values = self._get_qvalues(obs)
-        next_qvalues, next_state_values = self.target_network(next_obs)
-        next_state_values = next_state_values * (1 - is_done)
-        probs = tf.nn.softmax(qvalues)
-        logprobs = tf.nn.log_softmax(qvalues)
+        # Decorator autographs the function
+        @tf.function
+        def td_loss():
+            qvalues, state_values = self._get_qvalues(obs)
+            next_qvalues, next_state_values = self.target_network(next_obs)
+            next_state_values = next_state_values * (1 - is_done)
+            probs = tf.nn.softmax(qvalues)
+            logprobs = tf.nn.log_softmax(qvalues)
 
-        logp_actions = tf.reduce_sum(logprobs * tf.one_hot(actions, self.number_actions), axis=-1)
-        advantage = rewards + self._gamma * next_state_values - state_values
-        entropy = -tf.reduce_sum(probs * logprobs, 1, name="entropy")
-        actor_loss = - tf.reduce_mean(logp_actions * tf.stop_gradient(advantage)) - 0.001 * \
-                           tf.reduce_mean(entropy)
-        target_state_values = rewards + self._gamma * next_state_values
-        critic_loss = tf.reduce_mean((state_values - tf.stop_gradient(target_state_values)) ** 2)
+            logp_actions = tf.reduce_sum(logprobs * tf.one_hot(actions, self.number_actions), axis=-1)
+            advantage = rewards + self._gamma * next_state_values - state_values
+            entropy = -tf.reduce_sum(probs * logprobs, 1, name="entropy")
+            actor_loss = - tf.reduce_mean(logp_actions * tf.stop_gradient(advantage)) - 0.001 * \
+                         tf.reduce_mean(entropy)
+            target_state_values = rewards + self._gamma * next_state_values
+            critic_loss = tf.reduce_mean((state_values - tf.stop_gradient(target_state_values)) ** 2)
+            return actor_loss + critic_loss
 
-        train_step = tf.optimizers.Adam(self._learning_rate).minimize(actor_loss + critic_loss,
-                                                                      var_list=self.network.trainable_variables)
-        return train_step,
+        with tf.GradientTape() as tape:
+            loss = td_loss()
+
+        grads = tape.gradient(loss, self.network.trainable_variables)
+        self.optimizer.apply_gradients(zip(grads, self.network.trainable_variables))
+
+        return loss
 
     def _sample_batch(self, batch_size):
         obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch = self.exp_buffer.sample(batch_size)
