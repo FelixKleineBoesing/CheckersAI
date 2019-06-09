@@ -1,12 +1,11 @@
 import tensorflow as tf
-from tensorflow.keras.layers import Dense, Flatten, LSTM, Input
-import keras
+from tensorflow.python.keras.layers import Dense, Flatten, LSTM, Input
 import numpy as np
 import os
 import logging
 import random
 
-from checkers.src.Helpers import ActionSpace
+from checkers.src.Helpers import ActionSpace, min_max_scaling, multiply
 from checkers.src.ReplayBuffer import ReplayBuffer
 from checkers.src.agents.Agent import Agent
 
@@ -68,7 +67,7 @@ class A2C(Agent):
         """
         # preprocess state space
         # normalizing state space between zero and one
-        state_space = (state_space.astype('float32') - np.min(state_space)) / (np.max(state_space) - np.min(state_space))
+        state_space = min_max_scaling(state_space)
 
         qvalues = self._get_qvalues([state_space])
         decision = self._sample_actions(qvalues, action_space)
@@ -106,6 +105,8 @@ class A2C(Agent):
         self.target_network.load_weights(self._save_path)
 
     def get_feedback(self, state, action, reward, next_state, finished):
+        state = state.reshape(1, multiply(*state.shape))
+        next_state = state.reshape(1, multiply(*next_state.shape))
         action_number = np.unravel_index(np.ravel_multi_index(action, self.action_shape), (4096,))[0]
         self.exp_buffer.add(state, action_number, reward, next_state, finished)
         if self.number_turns % self._intervall_actions_train == 0 and self.number_turns > 1:
@@ -153,5 +154,9 @@ class A2C(Agent):
         obs_batch = obs_batch.reshape(obs_batch.shape[0], 1, obs_batch.shape[1] * obs_batch.shape[2])
         next_obs_batch = next_obs_batch.reshape(next_obs_batch.shape[0], 1, next_obs_batch.shape[1] *
                                                 next_obs_batch.shape[2])
+        obs_batch = min_max_scaling(obs_batch)
+        next_obs_batch = min_max_scaling(next_obs_batch)
+        is_done_batch = is_done_batch.astype("float32")
+        reward_batch = reward_batch.astype("float32")
         return {"obs": obs_batch, "actions": act_batch, "rewards": reward_batch,
                 "next_obs": next_obs_batch, "is_done": is_done_batch}

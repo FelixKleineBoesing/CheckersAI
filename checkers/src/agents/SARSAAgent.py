@@ -3,10 +3,9 @@ import random
 import os
 import logging
 import tensorflow as tf
-from tensorflow.keras.layers import Dense, Flatten, LSTM
-import keras
+from tensorflow.python.keras.layers import Dense, Flatten, LSTM
 
-from checkers.src.Helpers import ActionSpace
+from checkers.src.Helpers import ActionSpace, min_max_scaling, multiply
 from checkers.src.agents.Agent import Agent
 from checkers.src.ReplayBuffer import ReplayBufferSarsa
 from checkers.src.cache.RedisWrapper import RedisChannel, RedisCache
@@ -71,8 +70,7 @@ class SARSAAgent(Agent):
         """
         # preprocess state space
         # normalizing state space between zero and one
-        state_space = (state_space.astype('float32') - np.min(state_space)) / (np.max(state_space) -
-                                                                               np.min(state_space))
+        state_space = min_max_scaling(state_space)
 
         qvalues = self._get_qvalues([state_space])
         decision = self._sample_actions(qvalues, action_space)
@@ -108,6 +106,8 @@ class SARSAAgent(Agent):
         return decision
 
     def get_feedback(self, state, action, reward, next_state, finished):
+        state = state.reshape(1, multiply(*state.shape))
+        next_state = state.reshape(1, multiply(*next_state.shape))
         if self._buffer_action is not None:
             action_number_buffer = np.unravel_index(np.ravel_multi_index(self._buffer_action, self.action_shape),
                                                     (4096,))[0]
@@ -137,7 +137,6 @@ class SARSAAgent(Agent):
 
     @tf.function
     def _train_network(self, obs, actions, next_obs, rewards, is_done, next_actions):
-
         current_qvalues = self._get_symbolic_qvalues(obs)
         current_action_qvalues = tf.reduce_sum(tf.one_hot(actions, self.number_actions) * current_qvalues, axis=1)
 
@@ -172,6 +171,10 @@ class SARSAAgent(Agent):
     def _sample_batch(self, batch_size):
         obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch, next_act_batch = \
             self.exp_buffer.sample(batch_size)
+        obs_batch = min_max_scaling(obs_batch)
+        next_obs_batch = min_max_scaling(next_obs_batch)
+        is_done_batch = is_done_batch.astype("float32")
+        reward_batch = reward_batch.astype("float32")
         return {"obs": obs_batch, "actions": act_batch, "rewards": reward_batch,
                 "next_obs": next_obs_batch, "is_done": is_done_batch, "next_actions": next_act_batch}
 

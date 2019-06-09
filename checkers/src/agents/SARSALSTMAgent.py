@@ -1,10 +1,10 @@
 import tensorflow as tf
-from tensorflow.keras.layers import Dense, Flatten, LSTM
+from tensorflow.python.keras.layers import Dense, Flatten, LSTM
 import keras
 import numpy as np
 import os
 
-from checkers.src.Helpers import Config
+from checkers.src.Helpers import Config, min_max_scaling
 from checkers.src.ReplayBuffer import EpisodeBuffer
 from checkers.src.agents.SARSAAgent import SARSAAgent
 from checkers.src.agents.Agent import Agent
@@ -83,5 +83,9 @@ class SARSALSTMAgent(SARSAAgent):
             self.exp_buffer.sample(batch_size)
         obs_batch = obs_batch.reshape(obs_batch.shape[0], 1, obs_batch.shape[1] * obs_batch.shape[2])
         next_obs_batch = next_obs_batch.reshape(next_obs_batch.shape[0], 1, next_obs_batch.shape[1] * next_obs_batch.shape[2])
+        obs_batch = min_max_scaling(obs_batch)
+        next_obs_batch = min_max_scaling(next_obs_batch)
+        is_done_batch = is_done_batch.astype("float32")
+        reward_batch = reward_batch.astype("float32")
         return {"obs": obs_batch, "actions": act_batch, "rewards": reward_batch,
                 "next_obs": next_obs_batch, "is_done": is_done_batch , "next_actions": next_act_batch}

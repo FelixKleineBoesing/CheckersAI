@@ -1,15 +1,14 @@
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.layers import Dense, Flatten
+from tensorflow.python.keras.layers import Dense
 import random
 import os
 import logging
 
 from checkers.src.agents.Agent import Agent
-from checkers.src.Helpers import ActionSpace
 from checkers.src.ReplayBuffer import ReplayBuffer
 from checkers.src.cache.RedisWrapper import RedisChannel, RedisCache
-from checkers.src.Helpers import Config
+from checkers.src.Helpers import Config, ActionSpace, multiply, min_max_scaling
 
 
 class QLearningAgent(Agent):
@@ -62,9 +61,9 @@ class QLearningAgent(Agent):
         :return:
         """
         # preprocess state space
-        # normalizing state space between zero and one
-        state_space = (state_space.astype('float32') - np.min(state_space)) / (np.max(state_space) - np.min(state_space))
-
+        # normalizing state space between zero and one ( 2 is max value of stone and -2 is min value of stone
+        state_space = min_max_scaling(state_space)
+        state_space = state_space.reshape(1, multiply(*state_space.shape))
         qvalues = self._get_qvalues([state_space])
         decision = self._sample_actions(qvalues, action_space)
         return decision
@@ -96,6 +95,8 @@ class QLearningAgent(Agent):
 
     def get_feedback(self, state, action, reward, next_state, finished):
         action_number = np.unravel_index(np.ravel_multi_index(action, self.action_shape), (4096,))[0]
+        state = state.reshape(1, multiply(*state.shape))
+        next_state = state.reshape(1, multiply(*next_state.shape))
         self.exp_buffer.add(state, action_number, reward, next_state, finished)
         if self.number_turns % self._intervall_actions_train == 0 and self.number_turns > 1:
             self.train_network()
@@ -115,12 +116,16 @@ class QLearningAgent(Agent):
 
     def _sample_batch(self, batch_size):
         obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch = self.exp_buffer.sample(batch_size)
+        obs_batch = min_max_scaling(obs_batch)
+        next_obs_batch = min_max_scaling(next_obs_batch)
+        is_done_batch = is_done_batch.astype("float32")
+        reward_batch = reward_batch.astype("float32")
         return {"obs": obs_batch, "actions": act_batch, "rewards": reward_batch,
                 "next_obs": next_obs_batch, "is_done": is_done_batch}
 
     def train_network(self):
         logging.debug("Train Network!")
-        _, loss_t = self._train_network(self._sample_batch(batch_size=self._batch_size))
+        _, loss_t = self._train_network(**self._sample_batch(batch_size=self._batch_size))
         self.td_loss_history.append(loss_t)
         self.moving_average_loss.append(np.mean([self.td_loss_history[max([0, len(self.td_loss_history) - 100]):]]))
         ma = self.moving_average_loss[-1]
@@ -130,30 +135,28 @@ class QLearningAgent(Agent):
             self.publish_data()
 
     def _configure_network(self, state_shape: tuple, name: str):
-
         network = tf.keras.models.Sequential([
-            Dense(512, activation="relu", input_shape=state_shape),
+            Dense(512, activation="relu", input_shape=(multiply(*state_shape), )),
             # Dense(1024, activation="relu"),
             # Dense(2048, activation="relu"),
             # Dense(4096, activation="relu"),
             Dense(2048, activation="relu"),
-            Flatten(),
             Dense(self.number_actions, activation="linear")])
         return network
 
     @tf.function
     def _train_network(self, obs, actions, next_obs, rewards, is_done):
+        # Define loss function for sgd.
         current_qvalues = self._get_qvalues(obs)
         current_action_qvalues = tf.reduce_sum(tf.one_hot(actions, self.number_actions) * current_qvalues, axis=1)
-
         # compute q-values for NEXT states with target network
         next_qvalues_target = self.target_network(next_obs)
         next_state_values_target = tf.reduce_max(next_qvalues_target, axis=-1)
         reference_qvalues = rewards + self._gamma * next_state_values_target * (1 - is_done)
 
-        # Define loss function for sgd.
-        td_loss = tf.reduce_mean(current_action_qvalues - reference_qvalues) ** 2
-        # TODO deliver var_list in ada optimizer
+        def td_loss():
+            return tf.reduce_mean(current_action_qvalues - reference_qvalues) ** 2
+        
         train_step = tf.optimizers.Adam(self._learning_rate).minimize(td_loss,
                                                                       var_list=self.network.trainable_variables)
         return train_step, td_loss

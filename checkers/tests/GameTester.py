@@ -218,9 +218,9 @@ def run_a2c_vs_random():
 if __name__=="__main__":
     logging.getLogger().setLevel(logging.INFO)
     #run_random_vs_random_max()
-    #run_random_vs_qlearning()
+    run_random_vs_qlearning()
     #run_sarsa_vs_qlearning()
-    run_sarsa_vs_random()
+    #un_sarsa_vs_random()
     #run_sarsa_lstm_vs_random()
     #run_q_lstm_vs_random()
     #run_a2c_vs_random()
