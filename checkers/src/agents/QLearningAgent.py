@@ -147,16 +147,15 @@ class QLearningAgent(Agent):
     @tf.function
     def _train_network(self, obs, actions, next_obs, rewards, is_done):
         # Define loss function for sgd.
-        current_qvalues = self._get_qvalues(obs)
-        current_action_qvalues = tf.reduce_sum(tf.one_hot(actions, self.number_actions) * current_qvalues, axis=1)
-        # compute q-values for NEXT states with target network
-        next_qvalues_target = self.target_network(next_obs)
-        next_state_values_target = tf.reduce_max(next_qvalues_target, axis=-1)
-        reference_qvalues = rewards + self._gamma * next_state_values_target * (1 - is_done)
-
         def td_loss():
+            current_qvalues = self._get_qvalues(obs)
+            current_action_qvalues = tf.reduce_sum(tf.one_hot(actions, self.number_actions) * current_qvalues, axis=1)
+            # compute q-values for NEXT states with target network
+            next_qvalues_target = self.target_network(next_obs)
+            next_state_values_target = tf.reduce_max(next_qvalues_target, axis=-1)
+            reference_qvalues = rewards + self._gamma * next_state_values_target * (1 - is_done)
             return tf.reduce_mean(current_action_qvalues - reference_qvalues) ** 2
-        
+
         train_step = tf.optimizers.Adam(self._learning_rate).minimize(td_loss,
                                                                       var_list=self.network.trainable_variables)
-        return train_step, td_loss
+        return train_step
