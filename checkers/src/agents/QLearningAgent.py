@@ -1,23 +1,21 @@
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.keras.layers import Dense
 import random
-from keras.layers import Dense, Flatten
-import keras
 import os
 import logging
 
 from checkers.src.agents.Agent import Agent
-from checkers.src.Helpers import ActionSpace
 from checkers.src.ReplayBuffer import ReplayBuffer
 from checkers.src.cache.RedisWrapper import RedisChannel, RedisCache
-from checkers.src.Helpers import Config
+from checkers.src.Helpers import Config, ActionSpace, multiply, min_max_scaling
 
 
 class QLearningAgent(Agent):
 
     def __init__(self, state_shape: tuple, action_shape: tuple, name: str, side: str = "up", epsilon: float = 0.5,
                  intervall_turns_train: int = 500, intervall_turns_load: int = 10000,
-                 saver_path: str = "../data/modeldata/q/model.ckpt", caching: bool = False,
+                 save_path: str = "../data/modeldata/q/model.ckpt", caching: bool = False,
                  config: Config = None, cache: RedisCache = None, channel: RedisChannel = None):
         """
         Agent which implements Q Learning
@@ -30,39 +28,24 @@ class QLearningAgent(Agent):
 
         # tensorflow related stuff
         self.name = name
-        self.sess = tf.Session()
-        self._batch_size = 4096
+        self._batch_size = 64
         self._learning_rate = 0.3
+        self._gamma = 0.99
 
         # calculate number actions from actionshape
         self.number_actions = np.product(action_shape)
         self._intervall_actions_train = intervall_turns_train
         self._intervall_turns_load = intervall_turns_load
 
-        self.target_network = self._configure_network(state_shape, "target_{}".format(name))
         self.network = self._configure_network(state_shape, self.name)
+        self.target_network = self._configure_network(state_shape, "target_{}".format(name))
 
-        # prepare a graph for agent step
-        self.state_t = tf.placeholder('float32', [None, ] + list(state_shape))
-        self.qvalues_t = self._get_symbolic_qvalues(self.state_t)
-
-        self.weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=name)
         self.epsilon = epsilon
-        self.target_weights = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="target_{}".format(name))
         self.exp_buffer = ReplayBuffer(100000)
 
-        # init placeholder
-        self._obs_ph = tf.placeholder(tf.float32, shape=(None,) + state_shape)
-        self._actions_ph = tf.placeholder(tf.int32, shape=[None])
-        self._rewards_ph = tf.placeholder(tf.float32, shape=[None])
-        self._next_obs_ph = tf.placeholder(tf.float32, shape=(None,) + state_shape)
-        self._is_done_ph = tf.placeholder(tf.float32, shape=[None])
-
-        self.saver = tf.train.Saver()
-        self._saver_path = saver_path
-        self._configure_target_model()
-        if os.path.isfile(self._saver_path + ".index"):
-            self.saver.restore(self.sess, self._saver_path)
+        self._save_path = save_path
+        if os.path.isfile(self._save_path + ".index"):
+            self.network.load_weights(self._save_path)
 
         # copy weight to target weights
         self.load_weigths_into_target_network()
@@ -77,17 +60,13 @@ class QLearningAgent(Agent):
         :param action_space:
         :return:
         """
-        #preprocess state space
-        # normalizing state space between zero and one
-        state_space = (state_space.astype('float32') - np.min(state_space)) / (np.max(state_space) - np.min(state_space))
-
+        # preprocess state space
+        # normalizing state space between zero and one ( 2 is max value of stone and -2 is min value of stone
+        state_space = min_max_scaling(state_space)
+        state_space = state_space.reshape(1, multiply(*state_space.shape), )
         qvalues = self._get_qvalues([state_space])
         decision = self._sample_actions(qvalues, action_space)
         return decision
-
-    def _get_qvalues(self, state_t):
-        """Same as symbolic step except it operates on numpy arrays"""
-        return self.sess.run(self.qvalues_t, {self.state_t: state_t})
 
     def _sample_actions(self, qvalues: np.ndarray, action_space: ActionSpace):
         """
@@ -114,56 +93,39 @@ class QLearningAgent(Agent):
 
         return decision
 
-    def get_feedback(self, state, action, reward, next_state, finished):
+    def _get_feedback_inner(self, state, action, reward, next_state, finished):
         action_number = np.unravel_index(np.ravel_multi_index(action, self.action_shape), (4096,))[0]
+        state = state.reshape(multiply(*state.shape), )
+        next_state = state.reshape(multiply(*next_state.shape), )
         self.exp_buffer.add(state, action_number, reward, next_state, finished)
         if self.number_turns % self._intervall_actions_train == 0 and self.number_turns > 1:
             self.train_network()
         if self.number_turns % self._intervall_turns_load == 0 and self.number_turns > 1:
             self.load_weigths_into_target_network()
 
-    def _get_symbolic_qvalues(self, state_t):
+    def _get_qvalues(self, state_t):
         """takes agent's observation, returns qvalues. Both are tf Tensors"""
         qvalues = self.network(state_t)
         return qvalues
 
-    def _configure_target_model(self):
-        # placeholders that will be fed with exp_replay.sample(batch_size)
-        is_not_done = 1 - self._is_done_ph
-        gamma = 0.99
-        current_qvalues = self._get_symbolic_qvalues(self._obs_ph)
-        current_action_qvalues = tf.reduce_sum(tf.one_hot(self._actions_ph, self.number_actions) * current_qvalues, axis=1)
-
-        # compute q-values for NEXT states with target network
-        next_qvalues_target = self.target_network(self._next_obs_ph)
-        next_state_values_target = tf.reduce_max(next_qvalues_target, axis=-1)
-        reference_qvalues = self._rewards_ph + gamma * next_state_values_target * is_not_done
-
-        # Define loss function for sgd.
-        td_loss = (current_action_qvalues - reference_qvalues) ** 2
-        self._td_loss = tf.reduce_mean(td_loss)
-        self._train_step = tf.train.AdamOptimizer(self._learning_rate).minimize(self._td_loss, var_list=self.weights)
-        self.sess.run(tf.global_variables_initializer())
-
     def load_weigths_into_target_network(self):
         """ assign target_network.weights variables to their respective agent.weights values. """
         logging.debug("Transfer Weight!")
-        assigns = []
-        for w_agent, w_target in zip(self.weights, self.target_weights):
-            assigns.append(tf.assign(w_target, w_agent, validate_shape=True))
-        self.sess.run(assigns)
-        self.saver.save(self.sess, self._saver_path)
+        self.network.save_weights(self._save_path)
+        self.target_network.load_weights(self._save_path)
 
     def _sample_batch(self, batch_size):
         obs_batch, act_batch, reward_batch, next_obs_batch, is_done_batch = self.exp_buffer.sample(batch_size)
-        return {
-            self._obs_ph: obs_batch, self._actions_ph: act_batch, self._rewards_ph: reward_batch,
-            self._next_obs_ph: next_obs_batch, self._is_done_ph: is_done_batch
-        }
+        obs_batch = min_max_scaling(obs_batch)
+        next_obs_batch = min_max_scaling(next_obs_batch)
+        is_done_batch = is_done_batch.astype("float32")
+        reward_batch = reward_batch.astype("float32")
+        return {"obs": obs_batch, "actions": act_batch, "rewards": reward_batch,
+                "next_obs": next_obs_batch, "is_done": is_done_batch}
 
     def train_network(self):
         logging.debug("Train Network!")
-        _, loss_t = self.sess.run([self._train_step, self._td_loss], self._sample_batch(batch_size=self._batch_size))
+        loss_t = self._train_network(**self._sample_batch(batch_size=self._batch_size))
         self.td_loss_history.append(loss_t)
         self.moving_average_loss.append(np.mean([self.td_loss_history[max([0, len(self.td_loss_history) - 100]):]]))
         ma = self.moving_average_loss[-1]
@@ -173,14 +135,35 @@ class QLearningAgent(Agent):
             self.publish_data()
 
     def _configure_network(self, state_shape: tuple, name: str):
-        # define network
-        with tf.variable_scope(name, reuse=False):
-            network = keras.models.Sequential()
-            network.add(Dense(512, activation="relu", input_shape=state_shape))
-            #network.add(Dense(1024, activation="relu"))
-            #network.add(Dense(2048, activation="relu"))
-            #network.add(Dense(4096, activation="relu"))
-            network.add(Dense(2048, activation="relu"))
-            network.add(Flatten())
-            network.add(Dense(self.number_actions, activation="linear"))
+        network = tf.keras.models.Sequential([
+            Dense(512, activation="relu", input_shape=(multiply(*state_shape), )),
+            # Dense(1024, activation="relu"),
+            # Dense(2048, activation="relu"),
+            # Dense(4096, activation="relu"),
+            Dense(2048, activation="relu"),
+            Dense(self.number_actions, activation="linear")])
+
+        self.optimizer = tf.optimizers.Adam(self._learning_rate)
         return network
+
+    def _train_network(self, obs, actions, next_obs, rewards, is_done):
+
+        # Decorator autographs the function
+        @tf.function
+        def td_loss():
+            current_qvalues = self._get_qvalues(obs)
+            current_action_qvalues = tf.reduce_sum(tf.one_hot(actions, self.number_actions) * current_qvalues, axis=1)
+
+            next_qvalues_target = self.target_network(next_obs)
+            next_state_values_target = tf.reduce_max(next_qvalues_target, axis=-1)
+            reference_qvalues = rewards + self._gamma * next_state_values_target * (1 - is_done)
+            return tf.reduce_mean(current_action_qvalues - reference_qvalues) ** 2
+
+        with tf.GradientTape() as tape:
+            loss = td_loss()
+
+        grads = tape.gradient(loss, self.network.trainable_variables)
+        self.optimizer.apply_gradients(zip(grads, self.network.trainable_variables))
+
+        return loss
+
