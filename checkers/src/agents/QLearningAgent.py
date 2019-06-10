@@ -28,7 +28,7 @@ class QLearningAgent(Agent):
 
         # tensorflow related stuff
         self.name = name
-        self._batch_size = 64
+        self._batch_size = 256
         self._learning_rate = 0.3
         self._gamma = 0.99
 
@@ -37,8 +37,8 @@ class QLearningAgent(Agent):
         self._intervall_actions_train = intervall_turns_train
         self._intervall_turns_load = intervall_turns_load
 
-        self.network = self._configure_network(state_shape, self.name)
-        self.target_network = self._configure_network(state_shape, "target_{}".format(name))
+        self.network = self._configure_network(state_shape)
+        self.target_network = self._configure_network(state_shape)
 
         self.epsilon = epsilon
         self.exp_buffer = ReplayBuffer(100000)
@@ -63,7 +63,7 @@ class QLearningAgent(Agent):
         # preprocess state space
         # normalizing state space between zero and one ( 2 is max value of stone and -2 is min value of stone
         state_space = min_max_scaling(state_space)
-        state_space = state_space.reshape(1, multiply(*state_space.shape), )
+        state_space = state_space.reshape(1, multiply(*state_space.shape))
         qvalues = self._get_qvalues([state_space])
         decision = self._sample_actions(qvalues, action_space)
         return decision
@@ -134,7 +134,7 @@ class QLearningAgent(Agent):
         if self.redis_cache is not None:
             self.publish_data()
 
-    def _configure_network(self, state_shape: tuple, name: str):
+    def _configure_network(self, state_shape: tuple):
         network = tf.keras.models.Sequential([
             Dense(512, activation="relu", input_shape=(multiply(*state_shape), )),
             # Dense(1024, activation="relu"),

@@ -42,8 +42,8 @@ class SARSALSTMAgent(SARSAAgent):
         self._buffer_reward = None
         self._buffer_done = None
 
-        self.target_network = self._configure_network(state_shape, "target_{}".format(name))
-        self.network = self._configure_network(state_shape, name)
+        self.target_network = self._configure_network(state_shape)
+        self.network = self._configure_network(state_shape)
 
         self.epsilon = epsilon
 
@@ -60,7 +60,7 @@ class SARSALSTMAgent(SARSAAgent):
         self._number_turns = 0
         Agent.__init__(self, state_shape, action_shape, name, side, config, caching, cache, channel)
 
-    def _configure_network(self, state_shape: tuple, name: str):
+    def _configure_network(self, state_shape: tuple):
         network = tf.keras.models.Sequential([
             LSTM(512, activation="relu", input_shape=(1, 64), return_sequences=True),
             LSTM(1024, activation="relu", return_sequences=True),

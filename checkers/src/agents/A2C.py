@@ -27,8 +27,8 @@ class A2C(Agent):
         self._intervall_actions_train = intervall_turns_train
         self._intervall_turns_load = intervall_turns_load
 
-        self.target_network = self._configure_network(state_shape, "target_{}".format(name))
-        self.network = self._configure_network(state_shape, self.name)
+        self.target_network = self._configure_network(state_shape)
+        self.network = self._configure_network(state_shape)
 
         self.epsilon = epsilon
         self.exp_buffer = ReplayBuffer(100000)
@@ -42,9 +42,9 @@ class A2C(Agent):
 
         super().__init__(state_shape, action_shape, name, side)
 
-    def _configure_network(self, state_shape: tuple, name: str):
+    def _configure_network(self, state_shape: tuple):
         # define network
-        inputs = Input(shape=(1, 64))
+        inputs = Input(shape=(1, multiply(*state_shape)))
         x = LSTM(512, activation="relu", input_shape=(1, 64), return_sequences=True)(inputs)
         #x = LSTM(1024, activation="relu", return_sequences=True)(x)
         #x = LSTM(2048, activation="relu", return_sequences=True)(x)
@@ -54,7 +54,7 @@ class A2C(Agent):
 
         logits = Dense(self.number_actions, activation="linear")(x)
         state_value = Dense(1, activation="linear")(x)
-        network = tf.keras.models.Sequential(inputs=inputs, outputs=[logits, state_value])
+        network = tf.keras.models.Model(inputs=inputs, outputs=[logits, state_value])
         self.optimizer = tf.optimizers.Adam(self._learning_rate)
         return network
 
@@ -69,8 +69,9 @@ class A2C(Agent):
         # preprocess state space
         # normalizing state space between zero and one
         state_space = min_max_scaling(state_space)
+        state_space = state_space.reshape(1, multiply(*state_space.shape))
 
-        qvalues = self._get_qvalues([state_space])
+        qvalues, state_values = self._get_qvalues([state_space])
         decision = self._sample_actions(qvalues, action_space)
         return decision
 
@@ -117,7 +118,7 @@ class A2C(Agent):
 
     def train_network(self):
         logging.debug("Train Network!")
-        _, loss_t = self._train_network(self._sample_batch(batch_size=self._batch_size))
+        loss_t = self._train_network(**self._sample_batch(batch_size=self._batch_size))
         self.td_loss_history.append(loss_t)
         self.moving_average_loss.append(np.mean([self.td_loss_history[max([0, len(self.td_loss_history) - 100]):]]))
         ma = self.moving_average_loss[-1]

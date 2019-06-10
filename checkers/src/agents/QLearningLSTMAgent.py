@@ -4,7 +4,7 @@ from tensorflow.python.keras.layers import Dense, Flatten, LSTM
 from checkers.src.agents.QLearningAgent import QLearningAgent
 from checkers.src.ReplayBuffer import EpisodeBuffer
 from checkers.src.cache.RedisWrapper import RedisChannel, RedisCache
-from checkers.src.Helpers import Config
+from checkers.src.Helpers import Config, multiply
 
 
 class QLearningLSTMAgent(QLearningAgent):
@@ -25,9 +25,9 @@ class QLearningLSTMAgent(QLearningAgent):
                          save_path, caching, config, cache, channel)
         self.exp_buffer = EpisodeBuffer(5000)
 
-    def _configure_network(self, state_shape: tuple, name: str):
+    def _configure_network(self, state_shape: tuple):
         network = tf.keras.models.Sequential([
-            LSTM(512, activation="relu", input_shape=(1, 64), return_sequences=True),
+            LSTM(512, activation="relu", input_shape=(1, multiply(*state_shape)), return_sequences=True),
             #LSTM(1024, activation="relu", return_sequences=True),
             #LSTM(2048, activation="relu", return_sequences=True),
             #LSTM(4096, activation="relu", return_sequences=True),

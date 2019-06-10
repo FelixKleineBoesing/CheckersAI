@@ -72,9 +72,9 @@ def run_sarsa_vs_qlearning():
     board_length = 8
     action_space = (board_length, board_length, board_length, board_length)
 
-    agent_one = QLearningAgent((board_length, board_length), action_space, "qlearning", "up", 0.0, 2000, 100000)
-    agent_two = SARSAAgent((board_length, board_length), action_space, "sarsa", "down", 0.0, 2000, 100000)
-    iterations = 100
+    agent_one = QLearningAgent((board_length, board_length), action_space, "qlearning", "up", 1.0, 2500, 100000)
+    agent_two = SARSAAgent((board_length, board_length), action_space, "sarsa", "down", 1.0, 2500, 100000)
+    iterations = 50000
     for i in range(iterations):
         board = Board(board_length=8)
         game = Game(agent_one=agent_one, agent_two=agent_two, board=board)
@@ -218,9 +218,9 @@ def run_a2c_vs_random():
 if __name__=="__main__":
     logging.getLogger().setLevel(logging.INFO)
     #run_random_vs_random_max()
-    run_random_vs_qlearning()
+    #run_random_vs_qlearning()
     #run_sarsa_vs_qlearning()
-    #un_sarsa_vs_random()
+    #run_sarsa_vs_random()
     #run_sarsa_lstm_vs_random()
     #run_q_lstm_vs_random()
-    #run_a2c_vs_random()
+    run_a2c_vs_random()

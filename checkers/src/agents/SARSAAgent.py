@@ -44,8 +44,8 @@ class SARSAAgent(Agent):
         self._buffer_reward = None
         self._buffer_done = None
 
-        self.target_network = self._configure_network(state_shape, "target_{}".format(name))
-        self.network = self._configure_network(state_shape, name)
+        self.target_network = self._configure_network(state_shape)
+        self.network = self._configure_network(state_shape)
 
         # prepare a graph for agent step
         self.epsilon = epsilon
@@ -71,7 +71,7 @@ class SARSAAgent(Agent):
         # preprocess state space
         # normalizing state space between zero and one
         state_space = min_max_scaling(state_space)
-
+        state_space = state_space.reshape(1, multiply(*state_space.shape))
         qvalues = self._get_qvalues([state_space])
         decision = self._sample_actions(qvalues, action_space)
         return decision
@@ -106,8 +106,8 @@ class SARSAAgent(Agent):
         return decision
 
     def _get_feedback_inner(self, state, action, reward, next_state, finished):
-        state = state.reshape(1, multiply(*state.shape))
-        next_state = state.reshape(1, multiply(*next_state.shape))
+        state = state.reshape(multiply(*state.shape), )
+        next_state = state.reshape(multiply(*next_state.shape), )
         if self._buffer_action is not None:
             action_number_buffer = np.unravel_index(np.ravel_multi_index(self._buffer_action, self.action_shape),
                                                     (4096,))[0]
@@ -135,7 +135,6 @@ class SARSAAgent(Agent):
         qvalues = self.network(state_t)
         return qvalues
 
-    @tf.function
     def _train_network(self, obs, actions, next_obs, rewards, is_done, next_actions):
 
         # Decorator autographs the function
@@ -163,7 +162,7 @@ class SARSAAgent(Agent):
         return loss
 
     def train_network(self):
-        _, loss_t = self._train_network(self._sample_batch(batch_size=self._batch_size))
+        loss_t = self._train_network(**self._sample_batch(batch_size=self._batch_size))
         self.td_loss_history.append(loss_t)
         self.moving_average_loss.append(np.mean([self.td_loss_history[max([0, len(self.td_loss_history) - 100]):]]))
         ma = self.moving_average_loss[-1]
@@ -188,14 +187,13 @@ class SARSAAgent(Agent):
         return {"obs": obs_batch, "actions": act_batch, "rewards": reward_batch,
                 "next_obs": next_obs_batch, "is_done": is_done_batch, "next_actions": next_act_batch}
 
-    def _configure_network(self, state_shape: tuple, name: str):
+    def _configure_network(self, state_shape: tuple):
         network = tf.keras.models.Sequential([
-            Dense(512, activation="relu", input_shape=state_shape),
+            Dense(512, activation="relu", input_shape=(multiply(*state_shape), )),
             #Dense(1024, activation="relu"),
             #Dense(2048, activation="relu"),
             #Dense(4096, activation="relu"),
             Dense(2048, activation="relu"),
-            Flatten(),
             Dense(self.number_actions, activation="linear")])
         self.optimizer = tf.optimizers.Adam(self._learning_rate)
         return network
