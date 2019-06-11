@@ -28,8 +28,8 @@ class SARSALSTMAgent(SARSAAgent):
         # TODO reshape states as lstm expects 3d instead of 2d arrays
         # tensorflow related stuff
         self.name = name
-        self._batch_size = 2048
-        self._learning_rate = 0.3
+        self._batch_size = 512
+        self._learning_rate = 0.01
 
         # calculate number actions from actionshape
         self.number_actions = np.product(action_shape)

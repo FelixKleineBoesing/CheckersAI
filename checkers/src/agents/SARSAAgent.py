@@ -29,7 +29,7 @@ class SARSAAgent(Agent):
 
         # tensorflow related stuff
         self.name = name
-        self._batch_size = 4096
+        self._batch_size = 512
         self._learning_rate = 0.3
         self._gamma = 0.99
 
