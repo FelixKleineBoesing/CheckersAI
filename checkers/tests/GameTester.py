@@ -220,7 +220,7 @@ def run_sarsa_vs_sarsa():
 
     agent_one = SARSAAgent((board_length, board_length), action_space, "sarsa", "up", 1.0, 2500, 100000)
     agent_two = SARSAAgent((board_length, board_length), action_space, "sarsa_two", "down", 1.0, 2500, 100000)
-    iterations = 10000
+    iterations = 200000
     for i in range(iterations):
         board = Board(board_length=8)
         game = Game(agent_one=agent_one, agent_two=agent_two, board=board)

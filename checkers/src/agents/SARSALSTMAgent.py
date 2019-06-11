@@ -13,8 +13,8 @@ from checkers.src.cache.RedisWrapper import RedisChannel, RedisCache
 
 class SARSALSTMAgent(SARSAAgent):
 
-    def __init__(self, state_shape: tuple, action_shape: tuple, name: str, side: str = "up", epsilon: float = 0.5,
-                 intervall_turns_train: int = 500, intervall_turns_load: int = 10000,
+    def __init__(self, state_shape: tuple, action_shape: tuple, name: str, side: str = "up", epsilon: float = 0.0,
+                 intervall_turns_train: int = np.Inf, intervall_turns_load: int = np.Inf,
                  save_path: str = "../data/modeldata/sarsalstm/model.ckpt", caching: bool = False,
                  config: Config = None, cache: RedisCache = None, channel: RedisChannel = None):
         """

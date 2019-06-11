@@ -7,6 +7,11 @@ from waitress import serve
 import json
 import sys
 
+import multiprocessing as mp
+managed_dict = mp.Manager().dict
+
+
+
 app = Flask(__name__)
 agents = [{"name": "RandomAgentWithMaxValue", "description": "Agent that randomly chooses actions that have the "
                                                              "maximum value based on the jumped stones"},
@@ -19,7 +24,9 @@ agents = [{"name": "RandomAgentWithMaxValue", "description": "Agent that randoml
                                                 "instead of just taking the max value of all actions!"},
           {"name": "SARSALSTMAgent", "description": "SARSA Agent that considers which action is done in the next state,"
                                                     "instead of just taking the max value of all actions! "
-                                                    "It uses LSTMs instead of Dense Layers!"}]
+                                                    "It uses LSTMs instead of Dense Layers!"},
+          {"name": "A2C", "description": "This agent is a implementation of the actor critic algorithm that deepmind "
+                                         "uses!"}]
 
 
 @app.route("/get_agents", methods=["GET"])
@@ -27,7 +34,7 @@ def get_agents():
     return json.dumps(agents)
 
 
-@app.route("/run_game", methods=["GET"])
+@app.route("/game_with_two_agents", methods=["GET"])
 def run_game():
     try:
         agent_one = getattr(sys.modules["__main__"], request.args.get("agent_one"))
@@ -49,6 +56,13 @@ def run_game():
     game.play(verbose=True)
     return json.dumps({"status": "ok", "runhistory": game.runhistory, "text": "Player {0} wins!".format(game.winner),
                        "board_values": {"player_one": "positive", "player_two": "negative"}})
+
+
+@app.route("/start_game", methods=["GET"])
+def start_game():
+    pass
+
+
 
 
 serve(app, port=5001, threads=4)
