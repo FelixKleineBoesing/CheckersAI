@@ -1,16 +1,20 @@
 from checkers.src.game.Board import Board
 from checkers.src.game.Game import Game
+from checkers.src.game.GameASync import GameASync
 
 from flask import Flask
 from flask import request
 from waitress import serve
 import json
 import sys
+import numpy as np
 
 import multiprocessing as mp
 managed_dict = mp.Manager().dict
 
-
+managed_dict["running"] = False
+managed_dict["action_space"] = None
+managed_dict["action"] = None
 
 app = Flask(__name__)
 agents = [{"name": "RandomAgentWithMaxValue", "description": "Agent that randomly chooses actions that have the "
@@ -60,9 +64,34 @@ def run_game():
 
 @app.route("/start_game", methods=["GET"])
 def start_game():
-    pass
+    try:
+        agent_one = getattr(sys.modules["__main__"], request.args.get("agent_one"))
+    except AttributeError:
+        return json.dumps({"status": "error", "error_type": "NoPlayerFound", "text": "The specified agent one could not"
+                                                                                     " be found"})
+    board = Board(board_length=8)
+    game = GameASync(agent_one=agent_one, board=board, save_runhistory=True)
+    process = mp.Process(target=game.play, args=(managed_dict,))
+    process.start()
+    return json.dumps({"status": "started"})
 
 
+@app.route("/reset_game", methods=["GET"])
+def get_possible_actions():
+    coords = request.args.get("coord")
+
+    action_space = managed_dict["action_space"]
+    action_space = np.array(action_space)
+    board = action_space[coords[0], coords[1], :, :]
+    return json.dumps(board.tolist())
+
+
+@app.route("/do_actioon", methods=["GET"])
+def do_action():
+    action = request.args.get("action")
+
+    managed_dict["action"] = action
+    
 
 
 serve(app, port=5001, threads=4)

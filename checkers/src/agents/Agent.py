@@ -1,7 +1,6 @@
 import abc
 import numpy as np
 import logging
-import datetime
 
 from checkers.src.Helpers import ActionSpace
 from checkers.src.Helpers import Config
