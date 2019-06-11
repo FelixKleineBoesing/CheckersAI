@@ -5,11 +5,14 @@
 Finished:
 - Checkers Framework
 - Random Agents
-- Q Learning Agent (not learning properly)
+- Q Learning Agent (Dense & LSTM Networks)
+- SARSA Agent (Dense & LSTM Networks)
+- A2C Agent (Dense & LSTM Networks)
 
 In Development:
 - React Frontend for Vizualisation
 - Python Rest Interface
+- New Exploration Strategies
 
 # CheckersAI
 
