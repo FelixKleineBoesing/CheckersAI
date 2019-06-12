@@ -155,7 +155,7 @@ class QLearningAgent(Agent):
             current_action_qvalues = tf.reduce_sum(tf.one_hot(actions, self.number_actions) * current_qvalues, axis=1)
 
             next_qvalues_target = self.target_network(next_obs)
-            next_state_values_target = tf.reduce_max(next_qvalues_target, axis=-1)
+            next_state_values_target = tf.reduce_min(next_qvalues_target, axis=-1)
             reference_qvalues = rewards + self._gamma * next_state_values_target * (1 - is_done)
             return tf.reduce_mean(current_action_qvalues - reference_qvalues) ** 2
 

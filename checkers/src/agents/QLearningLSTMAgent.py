@@ -1,5 +1,6 @@
 import tensorflow as tf
 from tensorflow.python.keras.layers import Dense, Flatten, LSTM
+import numpy as np
 
 from checkers.src.agents.QLearningAgent import QLearningAgent
 from checkers.src.ReplayBuffer import EpisodeBuffer

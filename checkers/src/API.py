@@ -91,7 +91,7 @@ def do_action():
     action = request.args.get("action")
 
     managed_dict["action"] = action
-    
+
 
 
 serve(app, port=5001, threads=4)

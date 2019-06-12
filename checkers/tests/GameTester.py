@@ -218,9 +218,10 @@ def run_sarsa_vs_sarsa():
     board_length = 8
     action_space = (board_length, board_length, board_length, board_length)
 
-    agent_one = SARSAAgent((board_length, board_length), action_space, "sarsa", "up", 1.0, 2500, 100000)
-    agent_two = SARSAAgent((board_length, board_length), action_space, "sarsa_two", "down", 1.0, 2500, 100000)
-    iterations = 200000
+    agent_one = SARSAAgent((board_length, board_length), action_space, "sarsa", "up", 0.0, 25000000, 100000000)
+    agent_two = SARSAAgent((board_length, board_length), action_space, "sarsa_two", "down", 0.0, 25000000, 10000000,
+                           save_path="../data/modeldata/sarsa_two/model.ckpt")
+    iterations = 100
     for i in range(iterations):
         board = Board(board_length=8)
         game = Game(agent_one=agent_one, agent_two=agent_two, board=board)
@@ -232,9 +233,9 @@ def run_sarsa_vs_sarsa():
             victories_player_two = 0
             victories_player_one = 0
             for winner in winners:
-                if winner == "qlearning":
-                    victories_player_one += 1
                 if winner == "sarsa":
+                    victories_player_one += 1
+                if winner == "sarsa_two":
                     victories_player_two += 1
 
             logging.info("Player One: {}".format(str(victories_player_one)))
@@ -248,8 +249,8 @@ if __name__=="__main__":
     #run_random_vs_random_max()
     #run_random_vs_qlearning()
     #run_sarsa_vs_qlearning()
-    #run_sarsa_vs_random()
+    run_sarsa_vs_random()
     #run_sarsa_lstm_vs_random()
     #run_q_lstm_vs_random()
     #run_a2c_vs_random()
-    run_sarsa_vs_sarsa()
+    #run_sarsa_vs_sarsa()
