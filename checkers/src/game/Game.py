@@ -34,7 +34,8 @@ class Game:
         self.winner = None
         self.rewards = rewards
         self.save_runhistory = save_runhistory
-        self.runhistory = []
+        self.runhistory_states = []
+        self.runhistory_actions = []
 
         # init board
         self.board = copy.deepcopy(board)
@@ -73,7 +74,8 @@ class Game:
                 self.board.refresh_board()
                 next_state = self.board.board
                 if self.save_runhistory:
-                    self.runhistory.append(next_state.tolist())
+                    self.runhistory_states.append(next_state.tolist())
+                    self.runhistory_actions.append(move)
                 if verbose:
                     print("--------Player One moved-----------")
                     self.board.print_board()
@@ -114,7 +116,8 @@ class Game:
                 self.board.refresh_board()
                 next_state = self.board.board
                 if self.save_runhistory:
-                    self.runhistory.append(next_state.tolist())
+                    self.runhistory_state.append(next_state.tolist())
+                    self.runhistory_actions.append(move)
                 if verbose:
                     print("--------Player two moved-----------")
                     self.board.print_board()
