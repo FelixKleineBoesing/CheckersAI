@@ -1,0 +1,8 @@
+<div (click)="onFieldClick()" fxLayout="row" fxLayoutAlign="center center" class="field"
+  [ngClass]="{'grey': !field.hasWhiteBackground, 'white': field.hasWhiteBackground, 'highlight': field.isHighlighted}">
+  <div [id]="'stone' + field.id" *ngIf="0 === field.stoneType" class="none"></div>
+  <div [id]="'stone' + field.id" *ngIf="1 === field.stoneType" class="normal-pl1"></div>
+  <div [id]="'stone' + field.id" *ngIf="-1 === field.stoneType" class="normal-pl2"></div>
+  <div [id]="'stone' + field.id" *ngIf="2 === field.stoneType" class="queen-pl1"></div>
+  <div [id]="'stone' + field.id" *ngIf="-2 === field.stoneType" class="queen-pl2"></div>
+</div>

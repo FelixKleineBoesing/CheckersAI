@@ -1,0 +1,13 @@
+<div *ngIf="fields">
+  <div *ngFor="let row of sizeArray">
+    <div fxLayout="row">
+      <app-field *ngFor="let col of sizeArray" [field]="fields[row][col]" (clicked)="onFieldClicked($event)">
+      </app-field>
+    </div>
+  </div>
+</div>
+
+
+<button (click)="initStones()">Init</button>
+<button (click)="nextMove()">Nexte Move</button>
+<button (click)="autoMove()">aut Move</button>
