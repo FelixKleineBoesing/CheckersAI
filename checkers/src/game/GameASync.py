@@ -15,7 +15,7 @@ class GameASync:
     integrated int game/board/stone-class
     """
     def __init__(self, agent_one: Agent, board: Board, rewards: Rewards = default_rewards,
-                 save_runhistory: bool = False):
+                 save_runhistory: bool = False, game_id: int = 0):
         """
         Game class which takes the players, a board and a reward class
         :param agent_one: agent one  that plays the game
@@ -26,6 +26,8 @@ class GameASync:
         assert isinstance(agent_one, Agent)
         assert isinstance(board, Board)
         assert isinstance(rewards, Rewards)
+
+        self.game_id = game_id
 
         # init players
         self.agent_one = agent_one
@@ -61,10 +63,14 @@ class GameASync:
             if verbose:
                 print("Iteration:{}".format(self.turns))
             action_space_p_one = self.get_action_space(self.agent_one.name)
+            managed_dict["action_space"] = action_space_p_one
             # if player is blocked and can´t do any moves, than he has lost the game
             if len(action_space_p_one) > 0:
-                action = self.agent_one.play_turn(self.board.board, action_space_p_one)
-                #TODO push action back in stream
+                while managed_dict[self.game_id]["action"] is None:
+                    time.sleep(2)
+                action = managed_dict[self.game_id]["action"]
+                managed_dict[self.game_id]["action"] = None
+                managed_dict[self.game_id]["action_space"] = None
                 move, stone_id = self._get_move_and_stone(action, action_space_p_one)
                 rpo, rpt = self.board.move_stone(move, stone_id, self.rewards)
                 reward_player_one += self.rewards.turn + rpo
@@ -72,6 +78,7 @@ class GameASync:
                 state = self.board.board
                 self.board.refresh_board()
                 next_state = self.board.board
+                managed_dict[self.game_id]["board"] = next_state
                 if self.save_runhistory:
                     self.runhistory.append(next_state.tolist())
                 if verbose:
@@ -103,14 +110,9 @@ class GameASync:
             number_stones_before = self.board.number_of_stones()
             self.turns += 1
             action_space_p_two = self.get_action_space(self.agent_two.name)
-            managed_dict["action_space"] = action_space_p_two
             # if player is blocked and can´t do any moves, than he has lost the game
             if len(action_space_p_two) > 0:
-                while managed_dict["action"] is None:
-                    time.sleep(2)
-                action = managed_dict["action"]
-                managed_dict["action"] = None
-                managed_dict["action_space"] = None
+                action = self.agent_two.play_turn(self.board.board, action_space_p_two)
                 move, stone_id = self._get_move_and_stone(action, action_space_p_two)
                 rpt, rpo = self.board.move_stone(move, stone_id, self.rewards)
                 reward_player_two += self.rewards.turn + rpt
@@ -118,6 +120,8 @@ class GameASync:
                 state = self.board.board
                 self.board.refresh_board()
                 next_state = self.board.board
+                managed_dict[self.game_id]["board"] = next_state
+                managed_dict[self.game_id]["enemy_moves"] = move
                 if self.save_runhistory:
                     self.runhistory.append(next_state.tolist())
                 if verbose:

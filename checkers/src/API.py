@@ -10,11 +10,13 @@ import sys
 import numpy as np
 
 import multiprocessing as mp
-managed_dict = mp.Manager().dict
+managed_dict = mp.Manager().dict()
+managed_dict["game_id"] = 0
 
-managed_dict["running"] = False
-managed_dict["action_space"] = None
-managed_dict["action"] = None
+
+def fill_mdict(mdict, game_id):
+    mdict[game_id] = {"running": False, "action": None, "action_space": None,
+                      "board": None, "enemy_moves": None}
 
 app = Flask(__name__)
 agents = [{"name": "RandomAgentWithMaxValue", "description": "Agent that randomly chooses actions that have the "
@@ -71,10 +73,15 @@ def start_game():
         return json.dumps({"status": "error", "error_type": "NoPlayerFound", "text": "The specified agent one could not"
                                                                                      " be found"})
     board = Board(board_length=8)
-    game = GameASync(agent_one=agent_one, board=board, save_runhistory=True)
+
+    game_id = managed_dict["game_id"]
+    game_id += 1
+    managed_dict["game_id"] = game_id
+
+    game = GameASync(agent_one=agent_one, board=board, save_runhistory=True, game_id=game_id)
     process = mp.Process(target=game.play, args=(managed_dict,))
     process.start()
-    return json.dumps({"status": "started"})
+    return json.dumps({"status": "started", "board": game.board})
 
 
 @app.route("/reset_game", methods=["GET"])
