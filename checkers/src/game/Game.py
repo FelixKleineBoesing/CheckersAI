@@ -3,9 +3,7 @@ import copy
 
 from checkers.src.game.Board import Board
 from checkers.src.agents.Agent import Agent
-from checkers.src.Helpers import Rewards
-from checkers.src.Helpers import default_rewards
-from checkers.src.Helpers import ActionSpace
+from checkers.src.game.GameHelpers import Rewards, default_rewards, ActionSpace
 
 
 class Game:
@@ -55,7 +53,7 @@ class Game:
         turns_without_removed_stone = 0
         cum_rewards_agent_one = 0
         cum_rewards_agent_two = 0
-
+        self.runhistory_states.append(self.board.board)
         while not finished:
             reward_player_one, reward_player_two = 0, 0
             number_stones_before = self.board.number_of_stones()
@@ -75,7 +73,7 @@ class Game:
                 next_state = self.board.board
                 if self.save_runhistory:
                     self.runhistory_states.append(next_state.tolist())
-                    self.runhistory_actions.append(move)
+                    self.runhistory_actions.append(np.array(move["move_coords"]).tolist())
                 if verbose:
                     print("--------Player One moved-----------")
                     self.board.print_board()
@@ -116,8 +114,8 @@ class Game:
                 self.board.refresh_board()
                 next_state = self.board.board
                 if self.save_runhistory:
-                    self.runhistory_state.append(next_state.tolist())
-                    self.runhistory_actions.append(move)
+                    self.runhistory_states.append(next_state.tolist())
+                    self.runhistory_actions.append(np.array(move["move_coords"]).tolist())
                 if verbose:
                     print("--------Player two moved-----------")
                     self.board.print_board()

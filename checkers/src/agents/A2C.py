@@ -5,7 +5,8 @@ import os
 import logging
 import random
 
-from checkers.src.Helpers import ActionSpace, min_max_scaling, multiply
+from checkers.src.Helpers import min_max_scaling, multiply
+from checkers.src.game.GameHelpers import ActionSpace
 from checkers.src.ReplayBuffer import ReplayBuffer
 from checkers.src.agents.Agent import Agent
 

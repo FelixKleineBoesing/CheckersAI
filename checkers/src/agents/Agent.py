@@ -2,7 +2,7 @@ import abc
 import numpy as np
 import logging
 
-from checkers.src.Helpers import ActionSpace
+from checkers.src.game.GameHelpers import ActionSpace
 from checkers.src.Helpers import Config
 from checkers.src.cache.RedisWrapper import RedisCache, RedisChannel
 from checkers.src.cache.RedisWrapper import get_key

@@ -16,7 +16,6 @@ class Stone:
         self.value = value
         self.removed = False
         self.board_size = board_size
-        self.recursion_level = 0
 
     @property
     def coord(self):
@@ -64,11 +63,13 @@ class Stone:
                     break
                 # if there is no stone, than add this to move list.
                 if value_board == 0:
-                    moves += [{"old_coord": self.coord, "new_coord": coord, "jumped_stones": [], "jumped_values": 0}]
+                    moves += [{"old_coord": self.coord, "new_coord": coord, "jumped_stones": [], "jumped_values": 0,
+                               "move_coords": [coord]}]
                 # if there is a stone of the enemy
-                if value_board < 0 and self.value > 0 or value_board > 0 and self.value < 0:
+                if (value_board < 0 < self.value) or (self.value < 0 < value_board):
                     # check if it can be jumped
                     coord_jump = coord + direction
+                    move_coords = [coord_jump.copy()]
                     within_board_after_jump = _check_if_position_on_board(coord_jump, board_size)
                     # break if place behind stone is out of border
                     if not within_board_after_jump:
@@ -79,19 +80,20 @@ class Stone:
                     if value_board_jump != 0:
                         break
                     jumped_stones += [coord]
-                    moves_tmp = self.jump_chain(directions, board, coord_jump, value_board, jumped_stones)
+                    moves_tmp = self.jump_chain(directions, board, coord_jump, value_board, jumped_stones, move_coords)
                     if len(moves_tmp) > 0:
                         moves += moves_tmp
                     else:
                         moves += [{"old_coord": self.coord, "new_coord": coord_jump, "jumped_stones": jumped_stones,
-                                   "jumped_values": abs(value_board)}]
+                                   "jumped_values": abs(value_board), "move_coords": [coord_jump]}]
                 i += 1
                 # break if normal stone, because they can only move one field
                 if abs(self.value) == 1:
                     break
         return moves
 
-    def jump_chain(self, directions: list, board: np.ndarray, coord: tuple, value_jumped: int, jumped_stones: list):
+    def jump_chain(self, directions: list, board: np.ndarray, coord: tuple, value_jumped: int, jumped_stones: list,
+                   move_coords: list):
         """
         checks whether there could be a stone be jumped over in a while since there may be another stone which can
         be jumped over after the first stone is jumped over
@@ -140,12 +142,13 @@ class Stone:
                     if board[coord_jump[0], coord_jump[1]] != 0:
                         break
                     jumped_stones_tmp += [coord]
+                    move_coords += [coord_jump]
                     tmp_jumped_values = abs(value_jumped) + abs(value_board)
-                    self.recursion_level += 1
-                    tmp_moves += self.jump_chain(directions, board, coord_jump, tmp_jumped_values, jumped_stones_tmp)
+                    tmp_moves += self.jump_chain(directions, board, coord_jump, tmp_jumped_values, jumped_stones_tmp,
+                                                 move_coords)
                     if len(tmp_moves) == 0:
-                        moves += [{"old_coord": self.coord, "new_coord": coord, "jumped_stones": jumped_stones_tmp,
-                                   "jumped_values": abs(tmp_jumped_values)}]
+                        moves += [{"old_coord": self.coord, "new_coord": coord_jump, "jumped_stones": jumped_stones_tmp,
+                                   "jumped_values": abs(tmp_jumped_values), "move_coords": move_coords}]
                     else:
                         moves += tmp_moves
                 i += 1

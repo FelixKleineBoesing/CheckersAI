@@ -5,9 +5,7 @@ import time
 from checkers.src.game.Board import Board
 from checkers.src.agents.Agent import Agent
 from checkers.src.agents.User import User
-from checkers.src.Helpers import Rewards
-from checkers.src.Helpers import default_rewards
-from checkers.src.Helpers import ActionSpace
+from checkers.src.game.GameHelpers import Rewards, default_rewards, ActionSpace
 
 
 class GameASync:

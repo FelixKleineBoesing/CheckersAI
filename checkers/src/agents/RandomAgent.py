@@ -2,7 +2,7 @@ import random
 import numpy as np
 
 from checkers.src.agents.Agent import Agent
-from checkers.src.Helpers import ActionSpace
+from checkers.src.game.GameHelpers import ActionSpace
 
 
 class RandomAgent(Agent):

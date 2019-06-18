@@ -58,8 +58,9 @@ def run_game():
 
     game = Game(agent_one=agent_one, agent_two=agent_two, board=board, save_runhistory=True)
     game.play(verbose=True)
-    return json.dumps({"status": "ok", "runhistory": game.runhistory, "text": "Player {0} wins!".format(game.winner),
-                       "board_values": {"player_one": "positive", "player_two": "negative"}})
+    return json.dumps({"status": "ok", "states": game.runhistory_states, "text": "Player {0} wins!".format(game.winner),
+                       "board_values": {"player_one": "positive", "player_two": "negative"},
+                       "actions": game.runhistory_actions})
 
 
 @app.route("/start_game", methods=["GET"])
