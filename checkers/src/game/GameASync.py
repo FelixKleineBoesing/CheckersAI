@@ -51,6 +51,10 @@ class GameASync:
         return self.board.get_all_moves(player_name)
 
     def play(self, verbose: bool = True, managed_dict: dict = {}):
+        print()
+        print(managed_dict["game_id"])
+        print(print(managed_dict.keys()))
+        print(managed_dict[1])
         finished = False
         turns_without_removed_stone = 0
         cum_rewards_agent_one = 0
@@ -63,7 +67,7 @@ class GameASync:
             if verbose:
                 print("Iteration:{}".format(self.turns))
             action_space_p_one = self.get_action_space(self.agent_one.name)
-            managed_dict["action_space"] = action_space_p_one
+            managed_dict[self.game_id]["action_space"] = action_space_p_one
             # if player is blocked and can´t do any moves, than he has lost the game
             if len(action_space_p_one) > 0:
                 while managed_dict[self.game_id]["action"] is None:
@@ -78,7 +82,7 @@ class GameASync:
                 state = self.board.board
                 self.board.refresh_board()
                 next_state = self.board.board
-                managed_dict[self.game_id]["board"] = next_state
+                managed_dict[self.game_id]["board"] = next_state.tolist()
                 if self.save_runhistory:
                     self.runhistory.append(next_state.tolist())
                 if verbose:
@@ -120,7 +124,7 @@ class GameASync:
                 state = self.board.board
                 self.board.refresh_board()
                 next_state = self.board.board
-                managed_dict[self.game_id]["board"] = next_state
+                managed_dict[self.game_id]["board"] = next_state.tolist()
                 managed_dict[self.game_id]["enemy_moves"] = move
                 if self.save_runhistory:
                     self.runhistory.append(next_state.tolist())

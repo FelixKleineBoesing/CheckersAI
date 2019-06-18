@@ -1,6 +1,14 @@
 from checkers.src.game.Board import Board
 from checkers.src.game.Game import Game
 from checkers.src.game.GameASync import GameASync
+from checkers.src.agents.RandomAgent import RandomAgent
+from checkers.src.agents.RandomAgentWithMaxValue import RandomAgentWithMaxValue
+from checkers.src.agents.QLearningLSTMAgent import QLearningLSTMAgent
+from checkers.src.agents.QLearningAgent import QLearningAgent
+from checkers.src.agents.SARSALSTMAgent import SARSALSTMAgent
+from checkers.src.agents.SARSAAgent import SARSAAgent
+from checkers.src.agents.A2C import A2C
+
 
 from flask import Flask
 from flask import request
@@ -77,11 +85,14 @@ def start_game():
     game_id = managed_dict["game_id"]
     game_id += 1
     managed_dict["game_id"] = game_id
+    fill_mdict(managed_dict, game_id)
 
+    board_len = 8
+    agent_one = agent_one((board_len, board_len), (board_len, board_len), "One", "up")
     game = GameASync(agent_one=agent_one, board=board, save_runhistory=True, game_id=game_id)
-    process = mp.Process(target=game.play, args=(managed_dict,))
+    process = mp.Process(target=game.play, args=(True, managed_dict))
     process.start()
-    return json.dumps({"status": "started", "board": game.board})
+    return json.dumps({"status": "started", "board": game.board.board.tolist()})
 
 
 @app.route("/reset_game", methods=["GET"])
