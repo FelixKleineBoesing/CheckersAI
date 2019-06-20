@@ -3,6 +3,7 @@ import copy
 import time
 
 from checkers.src.game.Board import Board
+from checkers.src.Helpers import update_managed_dict
 from checkers.src.agents.Agent import Agent
 from checkers.src.agents.User import User
 from checkers.src.game.GameHelpers import Rewards, default_rewards, ActionSpace
@@ -51,9 +52,8 @@ class GameASync:
         return self.board.get_all_moves(player_name)
 
     def play(self, verbose: bool = True, managed_dict: dict = {}):
-        print()
         print(managed_dict["game_id"])
-        print(print(managed_dict.keys()))
+        print(managed_dict.keys())
         print(managed_dict[1])
         finished = False
         turns_without_removed_stone = 0
@@ -67,14 +67,18 @@ class GameASync:
             if verbose:
                 print("Iteration:{}".format(self.turns))
             action_space_p_one = self.get_action_space(self.agent_one.name)
-            managed_dict[self.game_id]["action_space"] = action_space_p_one
+            print(action_space_p_one)
+            update_managed_dict(managed_dict, self.game_id, "action_space", action_space_p_one)
+            print(managed_dict.keys())
+            print(managed_dict[1])
             # if player is blocked and can´t do any moves, than he has lost the game
             if len(action_space_p_one) > 0:
                 while managed_dict[self.game_id]["action"] is None:
                     time.sleep(2)
+                update_managed_dict(managed_dict, self.game_id, "action", action_space_p_one.space_dict)
                 action = managed_dict[self.game_id]["action"]
-                managed_dict[self.game_id]["action"] = None
-                managed_dict[self.game_id]["action_space"] = None
+                update_managed_dict(managed_dict, self.game_id, "action_space", Nones)
+                update_managed_dict(managed_dict, self.game_id, "action", None)
                 move, stone_id = self._get_move_and_stone(action, action_space_p_one)
                 rpo, rpt = self.board.move_stone(move, stone_id, self.rewards)
                 reward_player_one += self.rewards.turn + rpo
@@ -82,7 +86,7 @@ class GameASync:
                 state = self.board.board
                 self.board.refresh_board()
                 next_state = self.board.board
-                managed_dict[self.game_id]["board"] = next_state.tolist()
+                update_managed_dict(managed_dict, self.game_id, "board", next_state.tolist())
                 if self.save_runhistory:
                     self.runhistory.append(next_state.tolist())
                 if verbose:
@@ -109,6 +113,9 @@ class GameASync:
                 finished = True
             if finished:
                 break
+            print(managed_dict["game_id"])
+            print(print(managed_dict.keys()))
+            print(managed_dict[1])
 
             reward_player_one, reward_player_two = 0, 0
             number_stones_before = self.board.number_of_stones()
@@ -124,8 +131,8 @@ class GameASync:
                 state = self.board.board
                 self.board.refresh_board()
                 next_state = self.board.board
-                managed_dict[self.game_id]["board"] = next_state.tolist()
-                managed_dict[self.game_id]["enemy_moves"] = move
+                update_managed_dict(managed_dict, self.game_id, "board", next_state.tolist())
+                update_managed_dict(managed_dict, self.game_id, "enemy_moves", move)
                 if self.save_runhistory:
                     self.runhistory.append(next_state.tolist())
                 if verbose:
@@ -150,6 +157,9 @@ class GameASync:
                 reason = "Player two is blocked and can´t move!"
                 winner = self.agent_one.name
                 finished = True
+            print(managed_dict["game_id"])
+            print(print(managed_dict.keys()))
+            print(managed_dict[1])
 
         if verbose:
             print("Game finished with the following message: {}".format(reason))
@@ -196,8 +206,3 @@ class GameASync:
         self.cum_rewards_agent_one = None
         self.cum_rewards_agent_two = None
         self.winner = None
-
-class GameWrapper:
-
-    def __init__(self):
-        pass

@@ -8,6 +8,7 @@ from checkers.src.agents.QLearningAgent import QLearningAgent
 from checkers.src.agents.SARSALSTMAgent import SARSALSTMAgent
 from checkers.src.agents.SARSAAgent import SARSAAgent
 from checkers.src.agents.A2C import A2C
+from checkers.src.Helpers import update_managed_dict
 
 
 from flask import Flask
@@ -92,14 +93,22 @@ def start_game():
     game = GameASync(agent_one=agent_one, board=board, save_runhistory=True, game_id=game_id)
     process = mp.Process(target=game.play, args=(True, managed_dict))
     process.start()
-    return json.dumps({"status": "started", "board": game.board.board.tolist()})
+    return json.dumps({"status": "started", "board": game.board.board.tolist(),
+                       "game_id": game_id})
 
 
-@app.route("/reset_game", methods=["GET"])
+@app.route("/get_possible_actions", methods=["GET"])
 def get_possible_actions():
-    coords = request.args.get("coord")
-
-    action_space = managed_dict["action_space"]
+    try:
+        coords = request.args.get("coord")
+    except:
+        return json.dumps({"status": "error", "description": "Coord not delivered"})
+    try:
+        game_id = int(request.args.get("game_id"))
+    except:
+        return json.dumps({"status": "error", "description": "game_id not delivered"})
+    coords = tuple(int(item) for item in coords[1:-1] if item != ",")
+    action_space = managed_dict[game_id]["action_space"]
     action_space = np.array(action_space)
     board = action_space[coords[0], coords[1], :, :]
     return json.dumps(board.tolist())
@@ -107,9 +116,16 @@ def get_possible_actions():
 
 @app.route("/do_actioon", methods=["GET"])
 def do_action():
-    action = request.args.get("action")
+    try:
+        action = request.args.get("action")
+    except:
+        return json.dumps({"status": "error", "description": "action not delivered"})
+    try:
+        game_id = int(request.args.get("game_id"))
+    except:
+        return json.dumps({"status": "error", "description": "game_id not delivered"})
 
-    managed_dict["action"] = action
+    managed_dict[game_id]["action"] = action
 
 
 

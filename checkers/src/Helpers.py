@@ -50,3 +50,9 @@ def min_max_scaling(arr: np.ndarray, min_val: float=-2.0, max_val: float=2.0):
     :return: scaled numpy array
     """
     return (arr.astype('float32') - min_val) / (max_val - min_val)
+
+
+def update_managed_dict(managed_dict, game_id, key, value):
+    content = managed_dict[game_id]
+    content[key] = value
+    managed_dict[game_id] = content
