@@ -15,7 +15,7 @@ class GameASync:
     I know that rewards are not part of the original game, but the actions that may return a reward are deeply
     integrated int game/board/stone-class
     """
-    def __init__(self, agent_one: Agent, board: Board, rewards: Rewards = default_rewards,
+    def __init__(self, agent_two: Agent, board: Board, rewards: Rewards = default_rewards,
                  save_runhistory: bool = False, game_id: int = 0):
         """
         Game class which takes the players, a board and a reward class
@@ -24,15 +24,15 @@ class GameASync:
         :param board: object of Board class
         :param rewards: object of reward class which defines the rewards the agent get for some actions
         """
-        assert isinstance(agent_one, Agent)
+        assert isinstance(agent_two, Agent)
         assert isinstance(board, Board)
         assert isinstance(rewards, Rewards)
 
         self.game_id = game_id
 
         # init players
-        self.agent_one = agent_one
-        self.agent_two = User(agent_one.state_shape, agent_one.action_shape, "user", "down")
+        self.agent_one = User(agent_two.state_shape, agent_two.action_shape, "user", "up")
+        self.agent_two = agent_two
         self.winner = None
         self.rewards = rewards
         self.save_runhistory = save_runhistory
@@ -75,10 +75,12 @@ class GameASync:
             if len(action_space_p_one) > 0:
                 while managed_dict[self.game_id]["action"] is None:
                     time.sleep(2)
-                update_managed_dict(managed_dict, self.game_id, "action", action_space_p_one.space_dict)
                 action = managed_dict[self.game_id]["action"]
-                update_managed_dict(managed_dict, self.game_id, "action_space", Nones)
+                update_managed_dict(managed_dict, self.game_id, "action_space", None)
                 update_managed_dict(managed_dict, self.game_id, "action", None)
+                print(managed_dict.keys())
+                print(managed_dict[1])
+                print(action)
                 move, stone_id = self._get_move_and_stone(action, action_space_p_one)
                 rpo, rpt = self.board.move_stone(move, stone_id, self.rewards)
                 reward_player_one += self.rewards.turn + rpo
