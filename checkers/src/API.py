@@ -6,7 +6,10 @@ import sys
 import numpy as np
 import time
 import multiprocessing as mp
+import os
 
+print(os.getcwd())
+print(os.listdir("."))
 
 from checkers.src.game.Board import Board
 from checkers.src.game.Game import Game
@@ -52,7 +55,6 @@ agents = [{"name": "RandomAgentWithMaxValue", "description": "Agent that randoml
                                                     "It uses LSTMs instead of Dense Layers!"},
           {"name": "A2C", "description": "This agent is a implementation of the actor critic algorithm that deepmind "
                                          "uses!"}]
-
 
 @app.route("/get-agents", methods=["GET"])
 def get_agents():
@@ -157,5 +159,6 @@ def do_action():
     return json.dumps({"status": "ok", "board": board, "enemy_moves": enemy_moves}, cls=NumpyEncoder)
 
 
-serve(app, port=5001, threads=4)
+if __name__=="__main__":
+    serve(app, port=5001, threads=4)
 
