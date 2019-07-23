@@ -6,11 +6,22 @@ import sys
 import numpy as np
 import time
 import multiprocessing as mp
+import os
 
-from checkers.game.Board import Board
-from checkers.game.Game import Game
-from checkers.game.GameASync import GameASync
-from checkers.Helpers import update_managed_dict
+print(os.getcwd())
+print(os.listdir("."))
+
+from checkers.src.game.Board import Board
+from checkers.src.game.Game import Game
+from checkers.src.game.GameASync import GameASync
+from checkers.src.agents.RandomAgent import RandomAgent
+from checkers.src.agents.RandomAgentWithMaxValue import RandomAgentWithMaxValue
+from checkers.src.agents.QLearningLSTMAgent import QLearningLSTMAgent
+from checkers.src.agents.QLearningAgent import QLearningAgent
+from checkers.src.agents.SARSALSTMAgent import SARSALSTMAgent
+from checkers.src.agents.SARSAAgent import SARSAAgent
+from checkers.src.agents.A2C import A2C
+from checkers.src.Helpers import update_managed_dict
 
 
 def fill_mdict(mdict, game_id):
@@ -44,7 +55,6 @@ agents = [{"name": "RandomAgentWithMaxValue", "description": "Agent that randoml
                                                     "It uses LSTMs instead of Dense Layers!"},
           {"name": "A2C", "description": "This agent is a implementation of the actor critic algorithm that deepmind "
                                          "uses!"}]
-
 
 @app.route("/get-agents", methods=["GET"])
 def get_agents():
@@ -149,5 +159,6 @@ def do_action():
     return json.dumps({"status": "ok", "board": board, "enemy_moves": enemy_moves}, cls=NumpyEncoder)
 
 
-serve(app, port=5001, threads=4)
+if __name__=="__main__":
+    serve(app, port=5001, threads=4)
 
