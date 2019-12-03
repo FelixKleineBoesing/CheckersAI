@@ -5,7 +5,7 @@ import time
 from checkers.src.game.Board import Board
 from checkers.src.Helpers import update_managed_dict
 from checkers.src.agents.agent import Agent
-from checkers.src.agents.User import User
+from checkers.src.agents.user import User
 from checkers.src.game.GameHelpers import Rewards, default_rewards, ActionSpace
 
 
