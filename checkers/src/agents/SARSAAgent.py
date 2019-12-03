@@ -7,7 +7,7 @@ from tensorflow.python.keras.layers import Dense, Flatten, LSTM
 
 from checkers.src.Helpers import min_max_scaling, multiply
 from checkers.src.game.GameHelpers import ActionSpace
-from checkers.src.agents.Agent import Agent
+from checkers.src.agents.agent import Agent
 from checkers.src.ReplayBuffer import ReplayBufferSarsa
 from checkers.src.cache.RedisWrapper import RedisChannel, RedisCache
 from checkers.src.Helpers import Config

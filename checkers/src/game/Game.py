@@ -2,7 +2,7 @@ import numpy as np
 import copy
 
 from checkers.src.game.Board import Board
-from checkers.src.agents.Agent import Agent
+from checkers.src.agents.agent import Agent
 from checkers.src.game.GameHelpers import Rewards, default_rewards, ActionSpace
 
 

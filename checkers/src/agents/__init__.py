@@ -1,6 +1,6 @@
-from checkers.src.agents.QLearningAgent import QLearningAgent
-from checkers.src.agents.RandomAgent import RandomAgent
-from checkers.src.agents.RandomAgentWithMaxValue import RandomAgentWithMaxValue
+from checkers.src.agents.qlearning_agent import QLearningAgent
+from checkers.src.agents.random_agent import RandomAgent
+from checkers.src.agents.random_agent_with_max_walue import RandomAgentWithMaxValue
 
 random_agent = RandomAgent
 random_agent_special_args = {}

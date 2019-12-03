@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow.python.keras.layers import Dense, Flatten, LSTM
 import numpy as np
 
-from checkers.src.agents.QLearningAgent import QLearningAgent
+from checkers.src.agents.qlearning_agent import QLearningAgent
 from checkers.src.ReplayBuffer import EpisodeBuffer
 from checkers.src.cache.RedisWrapper import RedisChannel, RedisCache
 from checkers.src.Helpers import Config, multiply

@@ -1,4 +1,4 @@
-from checkers.src.agents.Agent import Agent
+from checkers.src.agents.agent import Agent
 import random
 import numpy as np
 

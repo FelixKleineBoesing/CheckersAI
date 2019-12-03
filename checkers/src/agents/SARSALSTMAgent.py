@@ -7,7 +7,7 @@ import os
 from checkers.src.Helpers import Config, min_max_scaling
 from checkers.src.ReplayBuffer import EpisodeBuffer
 from checkers.src.agents.SARSAAgent import SARSAAgent
-from checkers.src.agents.Agent import Agent
+from checkers.src.agents.agent import Agent
 from checkers.src.cache.RedisWrapper import RedisChannel, RedisCache
 
 
