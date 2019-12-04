@@ -3,25 +3,14 @@ import random
 import os
 import logging
 import tensorflow as tf
-<<<<<<< HEAD:checkers/src/agents/SARSAAgent.py
 from tensorflow.python.keras.layers import Dense, Flatten, LSTM
 
-from checkers.src.Helpers import min_max_scaling, multiply
-from checkers.src.game.GameHelpers import ActionSpace
+from checkers.src.helpers import min_max_scaling, multiply
+from checkers.src.game.game_helpers import ActionSpace
 from checkers.src.agents.agent import Agent
-from checkers.src.ReplayBuffer import ReplayBufferSarsa
-from checkers.src.cache.RedisWrapper import RedisChannel, RedisCache
-from checkers.src.Helpers import Config
-=======
-from tensorflow.python.keras.layers import Dense
-
-from checkers.Helpers import min_max_scaling, multiply
-from checkers.game.GameHelpers import ActionSpace
-from checkers.agents.Agent import Agent
-from checkers.ReplayBuffer import ReplayBufferSarsa
-from checkers.cache.RedisWrapper import RedisChannel, RedisCache
-from checkers.Helpers import Config
->>>>>>> 24a1d78fa109a2a5e99bdba05fb2c26a86a3f7f1:checkers/agents/SARSAAgent.py
+from checkers.src.replay_buffer import ReplayBufferSarsa
+from checkers.src.cache.redis_wrapper import RedisChannel, RedisCache
+from checkers.src.helpers import Config
 
 
 class SARSAAgent(Agent):

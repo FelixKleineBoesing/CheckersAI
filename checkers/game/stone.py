@@ -1,16 +1,12 @@
 import numpy as np
 import copy
 
-<<<<<<< HEAD:checkers/src/game/Stone.py
 from checkers.src.agents.agent import Agent
-=======
-from checkers.agents.Agent import Agent
->>>>>>> 24a1d78fa109a2a5e99bdba05fb2c26a86a3f7f1:checkers/game/Stone.py
 
 
 class Stone:
 
-    def __init__(self, id: int,  player: Agent, coord: np.ndarray, status: str, value: int,
+    def __init__(self,id: int,  player: Agent, coord: np.ndarray, status: str, value: int,
                  board_size: int):
         self.id = id
         self.player = player

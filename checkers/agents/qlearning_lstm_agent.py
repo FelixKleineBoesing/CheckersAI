@@ -2,17 +2,10 @@ import tensorflow as tf
 from tensorflow.python.keras.layers import Dense, Flatten, LSTM
 import numpy as np
 
-<<<<<<< HEAD:checkers/agents/qlearning_lstm_agent.py
 from checkers.src.agents.qlearning_agent import QLearningAgent
-from checkers.src.ReplayBuffer import EpisodeBuffer
-from checkers.src.cache.RedisWrapper import RedisChannel, RedisCache
-from checkers.src.Helpers import Config, multiply
-=======
-from checkers.agents.QLearningAgent import QLearningAgent
-from checkers.ReplayBuffer import EpisodeBuffer
-from checkers.cache.RedisWrapper import RedisChannel, RedisCache
-from checkers.Helpers import Config, multiply
->>>>>>> 24a1d78fa109a2a5e99bdba05fb2c26a86a3f7f1:checkers/agents/QLearningLSTMAgent.py
+from checkers.src.replay_buffer import EpisodeBuffer
+from checkers.src.cache.redis_wrapper import RedisChannel, RedisCache
+from checkers.src.helpers import Config, multiply
 
 
 class QLearningLSTMAgent(QLearningAgent):

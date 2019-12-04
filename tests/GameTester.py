@@ -1,26 +1,14 @@
 import logging
 
-<<<<<<< HEAD:checkers/tests/GameTester.py
-from checkers.src.game.Game import Game
-from checkers.src.game.Board import Board
+from checkers.src.game.game import Game
+from checkers.src.game.board import Board
 from checkers.src.agents.random_agent_with_max_walue import RandomAgentWithMaxValue
 from checkers.src.agents.random_agent import RandomAgent
 from checkers.src.agents.qlearning_agent import QLearningAgent
 from checkers.src.agents.qlearning_lstm_agent import QLearningLSTMAgent
-from checkers.src.agents.SARSAAgent import SARSAAgent
-from checkers.src.agents.SARSALSTMAgent import SARSALSTMAgent
+from checkers.src.agents.sarsa_agent import SARSAAgent
+from checkers.src.agents.sarsa_lstm_agent import SARSALSTMAgent
 from checkers.src.agents.a2c import A2C
-=======
-from game.Game import Game
-from game import Board
-from agents.RandomAgentWithMaxValue import RandomAgentWithMaxValue
-from agents import RandomAgent
-from agents import QLearningAgent
-from agents.QLearningLSTMAgent import QLearningLSTMAgent
-from agents import SARSAAgent
-from agents.SARSALSTMAgent import SARSALSTMAgent
-from agents import A2C
->>>>>>> 24a1d78fa109a2a5e99bdba05fb2c26a86a3f7f1:tests/GameTester.py
 
 
 def run_random_vs_random_max():

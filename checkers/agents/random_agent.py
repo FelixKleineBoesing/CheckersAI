@@ -1,13 +1,8 @@
 import random
 import numpy as np
 
-<<<<<<< HEAD:checkers/agents/random_agent.py
 from checkers.src.agents.agent import Agent
-from checkers.src.game.GameHelpers import ActionSpace
-=======
-from checkers.agents.Agent import Agent
-from checkers.game.GameHelpers import ActionSpace
->>>>>>> 24a1d78fa109a2a5e99bdba05fb2c26a86a3f7f1:checkers/agents/RandomAgent.py
+from checkers.src.game.game_helpers import ActionSpace
 
 
 class RandomAgent(Agent):

@@ -1,14 +1,8 @@
 import numpy as np
 
-<<<<<<< HEAD:checkers/src/game/Board.py
-from checkers.src.game.Stone import Stone
+from checkers.src.game.stone import Stone
 from checkers.src.agents.agent import Agent
-from checkers.src.game.GameHelpers import Rewards, ActionSpace
-=======
-from checkers.game.Stone import Stone
-from checkers.agents.Agent import Agent
-from checkers.game.GameHelpers import Rewards, ActionSpace
->>>>>>> 24a1d78fa109a2a5e99bdba05fb2c26a86a3f7f1:checkers/game/Board.py
+from checkers.src.game.game_helpers import Rewards, ActionSpace
 
 
 class Board:

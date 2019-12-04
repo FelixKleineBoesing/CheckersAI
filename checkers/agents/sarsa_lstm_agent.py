@@ -1,21 +1,14 @@
 import tensorflow as tf
 from tensorflow.python.keras.layers import Dense, Flatten, LSTM
+import keras
 import numpy as np
 import os
 
-<<<<<<< HEAD:checkers/src/agents/SARSALSTMAgent.py
-from checkers.src.Helpers import Config, min_max_scaling
-from checkers.src.ReplayBuffer import EpisodeBuffer
-from checkers.src.agents.SARSAAgent import SARSAAgent
+from checkers.src.helpers import Config, min_max_scaling
+from checkers.src.replay_buffer import EpisodeBuffer
+from checkers.src.agents.sarsa_agent import SARSAAgent
 from checkers.src.agents.agent import Agent
-from checkers.src.cache.RedisWrapper import RedisChannel, RedisCache
-=======
-from checkers.Helpers import Config, min_max_scaling
-from checkers.ReplayBuffer import EpisodeBuffer
-from checkers.agents.SARSAAgent import SARSAAgent
-from checkers.agents.Agent import Agent
-from checkers.cache.RedisWrapper import RedisChannel, RedisCache
->>>>>>> 24a1d78fa109a2a5e99bdba05fb2c26a86a3f7f1:checkers/agents/SARSALSTMAgent.py
+from checkers.src.cache.redis_wrapper import RedisChannel, RedisCache
 
 
 class SARSALSTMAgent(SARSAAgent):
