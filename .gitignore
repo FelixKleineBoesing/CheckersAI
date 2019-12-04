@@ -2,4 +2,6 @@
 *__pycache__*
 rewards.txt
 python_backend/data
-checkers/data/modeldata
+data/modeldata
+data
+mountingData
