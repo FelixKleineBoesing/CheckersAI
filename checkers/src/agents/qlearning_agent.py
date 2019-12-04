@@ -6,10 +6,10 @@ import os
 import logging
 
 from checkers.src.agents.agent import Agent
-from checkers.src.ReplayBuffer import ReplayBuffer
-from checkers.src.cache.RedisWrapper import RedisChannel, RedisCache
-from checkers.src.Helpers import Config, multiply, min_max_scaling
-from checkers.src.game.GameHelpers import ActionSpace
+from checkers.src.replay_buffer import ReplayBuffer
+from checkers.src.cache.redis_wrapper import RedisChannel, RedisCache
+from checkers.src.helpers import Config, multiply, min_max_scaling
+from checkers.src.game.game_helpers import ActionSpace
 
 
 class QLearningAgent(Agent):

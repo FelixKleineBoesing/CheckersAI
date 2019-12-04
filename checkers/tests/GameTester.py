@@ -1,13 +1,13 @@
 import logging
 
-from checkers.src.game.Game import Game
-from checkers.src.game.Board import Board
+from checkers.src.game.game import Game
+from checkers.src.game.board import Board
 from checkers.src.agents.random_agent_with_max_walue import RandomAgentWithMaxValue
 from checkers.src.agents.random_agent import RandomAgent
 from checkers.src.agents.qlearning_agent import QLearningAgent
 from checkers.src.agents.qlearning_lstm_agent import QLearningLSTMAgent
-from checkers.src.agents.SARSAAgent import SARSAAgent
-from checkers.src.agents.SARSALSTMAgent import SARSALSTMAgent
+from checkers.src.agents.sarsa_agent import SARSAAgent
+from checkers.src.agents.sarsa_lstm_agent import SARSALSTMAgent
 from checkers.src.agents.a2c import A2C
 
 

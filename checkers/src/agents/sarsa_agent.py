@@ -5,12 +5,12 @@ import logging
 import tensorflow as tf
 from tensorflow.python.keras.layers import Dense, Flatten, LSTM
 
-from checkers.src.Helpers import min_max_scaling, multiply
-from checkers.src.game.GameHelpers import ActionSpace
+from checkers.src.helpers import min_max_scaling, multiply
+from checkers.src.game.game_helpers import ActionSpace
 from checkers.src.agents.agent import Agent
-from checkers.src.ReplayBuffer import ReplayBufferSarsa
-from checkers.src.cache.RedisWrapper import RedisChannel, RedisCache
-from checkers.src.Helpers import Config
+from checkers.src.replay_buffer import ReplayBufferSarsa
+from checkers.src.cache.redis_wrapper import RedisChannel, RedisCache
+from checkers.src.helpers import Config
 
 
 class SARSAAgent(Agent):

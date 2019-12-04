@@ -4,11 +4,11 @@ import keras
 import numpy as np
 import os
 
-from checkers.src.Helpers import Config, min_max_scaling
-from checkers.src.ReplayBuffer import EpisodeBuffer
-from checkers.src.agents.SARSAAgent import SARSAAgent
+from checkers.src.helpers import Config, min_max_scaling
+from checkers.src.replay_buffer import EpisodeBuffer
+from checkers.src.agents.sarsa_agent import SARSAAgent
 from checkers.src.agents.agent import Agent
-from checkers.src.cache.RedisWrapper import RedisChannel, RedisCache
+from checkers.src.cache.redis_wrapper import RedisChannel, RedisCache
 
 
 class SARSALSTMAgent(SARSAAgent):

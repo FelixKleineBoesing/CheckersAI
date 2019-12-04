@@ -1,9 +1,9 @@
 import numpy as np
 import copy
 
-from checkers.src.game.Board import Board
+from checkers.src.game.board import Board
 from checkers.src.agents.agent import Agent
-from checkers.src.game.GameHelpers import Rewards, default_rewards, ActionSpace
+from checkers.src.game.game_helpers import Rewards, default_rewards, ActionSpace
 
 
 class Game:

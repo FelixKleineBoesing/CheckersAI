@@ -2,11 +2,11 @@ import numpy as np
 import copy
 import time
 
-from checkers.src.game.Board import Board
-from checkers.src.Helpers import update_managed_dict
+from checkers.src.game.board import Board
+from checkers.src.helpers import update_managed_dict
 from checkers.src.agents.agent import Agent
 from checkers.src.agents.user import User
-from checkers.src.game.GameHelpers import Rewards, default_rewards, ActionSpace
+from checkers.src.game.game_helpers import Rewards, default_rewards, ActionSpace
 
 
 class GameASync:
